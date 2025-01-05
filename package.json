@@ -1,0 +1,33 @@
+{
+  "name": "task-manager",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-auto": "^3.1.1",
+    "@sveltejs/kit": "^2.4.3",
+    "@sveltejs/vite-plugin-svelte": "^3.0.1",
+    "autoprefixer": "^10.4.17",
+    "postcss": "^8.4.33",
+    "svelte": "^4.2.9",
+    "svelte-check": "^3.6.3",
+    "tailwindcss": "^3.4.1",
+    "tslib": "^2.6.2",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.12",
+    "vitest": "^1.2.2"
+  },
+  "dependencies": {
+    "date-fns": "^3.3.1",
+    "idb-keyval": "^6.2.1",
+    "lucide-svelte": "^0.314.0"
+  }
+}

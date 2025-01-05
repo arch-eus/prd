@@ -1,0 +1,19 @@
+{
+	"/": [
+		"src/routes/+page.ts",
+		"src/routes/+layout.ts",
+		"src/routes/+layout.ts"
+	],
+	"/completed": [
+		"src/routes/completed/+page.ts",
+		"src/routes/+layout.ts"
+	],
+	"/logbook": [
+		"src/routes/logbook/+page.ts",
+		"src/routes/+layout.ts"
+	],
+	"/recurring": [
+		"src/routes/recurring/+page.ts",
+		"src/routes/+layout.ts"
+	]
+}
