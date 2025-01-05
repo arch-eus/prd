@@ -36,6 +36,7 @@ declare module '$env/static/private' {
 	export const TMPDIR: string;
 	export const CHROME_BIN: string;
 	export const PWD: string;
+	export const npm_config_yes: string;
 	export const NEXT_TELEMETRY_DISABLED: string;
 	export const ASTRO_TELEMETRY_DISABLED: string;
 	export const __NEXT_DISABLE_MEMORY_WATCHER: string;
@@ -64,6 +65,7 @@ declare module '$env/static/private' {
 	export const npm_command: string;
 	export const npm_package_name: string;
 	export const npm_package_version: string;
+	export const npm_package_engines_node: string;
 	export const npm_package_json: string;
 	export const npm_lifecycle_event: string;
 	export const npm_lifecycle_script: string;
@@ -110,6 +112,7 @@ declare module '$env/dynamic/private' {
 		TMPDIR: string;
 		CHROME_BIN: string;
 		PWD: string;
+		npm_config_yes: string;
 		NEXT_TELEMETRY_DISABLED: string;
 		ASTRO_TELEMETRY_DISABLED: string;
 		__NEXT_DISABLE_MEMORY_WATCHER: string;
@@ -138,6 +141,7 @@ declare module '$env/dynamic/private' {
 		npm_command: string;
 		npm_package_name: string;
 		npm_package_version: string;
+		npm_package_engines_node: string;
 		npm_package_json: string;
 		npm_lifecycle_event: string;
 		npm_lifecycle_script: string;

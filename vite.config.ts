@@ -8,10 +8,10 @@ export default defineConfig({
       allow: ['.']
     }
   },
-  optimizeDeps: {
-    include: ['@sveltejs/kit']
-  },
   build: {
     target: 'esnext'
+  },
+  optimizeDeps: {
+    exclude: ['@sveltejs/kit']
   }
 });

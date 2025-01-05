@@ -8,8 +8,8 @@ const config = {
     csrf: {
       checkOrigin: false
     },
-    serviceWorker: {
-      register: false
+    alias: {
+      $lib: './src/lib'
     }
   },
   preprocess: vitePreprocess()
