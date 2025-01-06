@@ -49,3 +49,5 @@
     </div>
   </div>
 </nav>
+
+<!-- TODO: add a version number here, preferably the one from Vercel  -->

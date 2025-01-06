@@ -104,14 +104,20 @@
 
   <TaskFormField id="tags">
     <TagInput 
-      bind:selectedTags 
-      on:keydown={(e) => {
-        if (e.key === 'Enter' && e.ctrlKey) {
-          e.preventDefault();
-          handleSubmit();
+    bind:selectedTags 
+    on:keydown={(e) => {
+      if (e.key === 'Enter') {
+        if (e.ctrlKey) {
+          e.preventDefault(); // Prevent default behavior for Ctrl+Enter
+          handleSubmit(); // Custom Ctrl+Enter action
+        } else {
+          e.preventDefault(); // Prevent default behavior for plain Enter, if necessary
+          console.log('Enter pressed, but no action taken.');
         }
-      }}
-    />
+      }
+    }}
+  />
+  
   </TaskFormField>
 
   <div class="flex justify-end gap-2">

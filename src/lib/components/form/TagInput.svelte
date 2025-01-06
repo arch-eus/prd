@@ -1,4 +1,3 @@
-```svelte
 <script lang="ts">
   import { X, Tag } from 'lucide-svelte';
   import { derived } from 'svelte/store';
@@ -82,4 +81,3 @@
     {/if}
   </div>
 </div>
-```
