@@ -1,0 +1,6 @@
+This favicon was generated using the following font:
+
+- Font Title: JetBrains Mono
+- Font Author: undefined
+- Font Source: https://fonts.gstatic.com/s/jetbrainsmono/v20/tDba2o-flEEny0FZhsfKu5WU4xD-IQ-PuZJJXxfpAO8LeVOQk6OThxPA.ttf
+- Font License: undefined)
