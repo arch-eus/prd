@@ -3,5 +3,6 @@ export const handleError = ({ error }: { error: Error }) => {
 };
 
 export const init = () => {
-  // Initialize client-side functionality
+  // Initialize IndexedDB and other client-side functionality
+  return Promise.resolve();
 };

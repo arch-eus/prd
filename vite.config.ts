@@ -5,14 +5,14 @@ export default defineConfig({
   plugins: [sveltekit()],
   server: {
     port: 5173,
-    strictPort: true,
+    host: true,
     fs: {
       allow: ['.']
     }
   },
   optimizeDeps: {
-    include: ['@sveltejs/kit'],
-    exclude: ['@sveltejs/kit/hooks']
+    include: ['idb-keyval', 'date-fns', 'lucide-svelte'],
+    exclude: ['@sveltejs/kit']
   },
   build: {
     target: 'esnext',
@@ -21,8 +21,10 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        manualChunks: {
-          'svelte-kit': ['@sveltejs/kit']
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
         }
       }
     }
