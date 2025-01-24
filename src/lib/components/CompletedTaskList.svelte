@@ -7,13 +7,19 @@
   export let tasks: Task[];
 
   $: groupedTasks = tasks.reduce((groups, task) => {
-    const date = format(task.completedAt!, 'yyyy-MM-dd');
+    if (!task.completedAt) return groups;
+    
+    const date = format(task.completedAt, 'yyyy-MM-dd');
     if (!groups[date]) {
       groups[date] = [];
     }
     groups[date].push(task);
     return groups;
   }, {} as Record<string, Task[]>);
+
+  function handleDelete(event: CustomEvent) {
+    taskStore.deleteTask(event.detail.id);
+  }
 
   function handleComplete(event: CustomEvent) {
     const task = tasks.find(t => t.id === event.detail.id);
@@ -34,8 +40,14 @@
         {format(new Date(date), 'MMMM d, yyyy')}
       </h3>
       <div class="space-y-2">
-        {#each dateTasks as task (task.id)}
-          <TaskItem {task} on:complete={handleComplete} />
+        {#each dateTasks as task}
+          <TaskItem
+            {task}
+            on:complete={handleComplete}
+            on:delete={handleDelete}
+            on:edit
+            on:showDetails
+          />
         {/each}
       </div>
     </div>

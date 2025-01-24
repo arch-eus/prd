@@ -14,6 +14,10 @@
       });
     }
   }
+
+  function handleDelete(event: CustomEvent) {
+    taskStore.deleteTask(event.detail.id);
+  }
 </script>
 
 <div class="space-y-4">
@@ -26,7 +30,7 @@
       <TaskItem
         {task}
         on:complete={handleComplete}
-        on:delete={() => taskStore.deleteTask(task.id)}
+        on:delete={handleDelete}
         on:edit
         on:showDetails
       />

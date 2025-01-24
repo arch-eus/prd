@@ -1,18 +1,30 @@
-import adapter from '@sveltejs/adapter-auto';
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import { sveltekit } from '@sveltejs/kit/vite';
+import { defineConfig } from 'vite';
 
-/** @type {import('@sveltejs/kit').Config} */
-const config = {
-  kit: {
-    adapter: adapter(),
-    csrf: {
-      checkOrigin: false
-    },
-    alias: {
-      $lib: './src/lib'
+export default defineConfig({
+  plugins: [sveltekit()],
+  server: {
+    port: 5173,
+    strictPort: true,
+    fs: {
+      allow: ['.']
     }
   },
-  preprocess: vitePreprocess()
-};
-
-export default config;
+  optimizeDeps: {
+    include: ['@sveltejs/kit'],
+    exclude: ['@sveltejs/kit/hooks']
+  },
+  build: {
+    target: 'esnext',
+    modulePreload: {
+      polyfill: true
+    },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'svelte-kit': ['@sveltejs/kit']
+        }
+      }
+    }
+  }
+});

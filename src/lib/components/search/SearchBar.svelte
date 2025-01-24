@@ -11,6 +11,7 @@
 
   function handleKeydown(event: KeyboardEvent) {
     if (event.key === 'Escape') {
+      event.preventDefault();
       clearSearch();
     }
   }

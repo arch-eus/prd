@@ -11,9 +11,7 @@ export const searchResults = derived(
     
     const searchTerms = query.toLowerCase().split(' ');
     
-    // Only search through todo tasks
     return $store.tasks
-      .filter(task => task.status === 'todo')
       .filter(task => {
         const searchableText = [
           task.title,

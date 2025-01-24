@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-  import { onMount } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
+  import { Circle, CheckCircle, SendHorizontal } from 'lucide-svelte';
   import type { Task } from '$lib/types/task';
   import TagInput from './TagInput.svelte';
   import TaskFormField from './TaskFormField.svelte';
@@ -17,8 +17,9 @@
   let description = task.description || '';
   let notes = task.notes || '';
   let dueDate = dateToInputValue(task.dueDate ? normalizeDate(task.dueDate) : selectedDate);
-  let selectedTags: string[] = task.labels || [];
+  let selectedTags = task.labels || [];
   let recurrence = task.recurrence || null;
+  let status = task.status || (new Date(dueDate) < new Date() ? 'completed' : 'todo');
   let titleInput: HTMLInputElement;
 
   onMount(() => {
@@ -36,26 +37,52 @@
       notes,
       dueDate: dueDate ? normalizeDate(dueDate) : new Date(),
       labels: selectedTags,
-      status: 'todo' as const,
+      status,
       recurrence
     };
     
     dispatch('submit', { task: taskData });
   }
+
+  function toggleStatus() {
+    status = status === 'completed' ? 'todo' : 'completed';
+  }
 </script>
 
 <form on:submit={handleSubmit} class="space-y-4">
-  <TaskFormField id="title">
-    <input
-      bind:this={titleInput}
-      type="text"
-      id="title"
-      bind:value={title}
-      class="w-full px-0 py-2 border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-teal-500 bg-transparent transition-colors"
-      placeholder="What needs to be done?"
-      required
-    />
-  </TaskFormField>
+  <div class="flex items-center gap-4">
+    <button
+      type="button"
+      class="text-navy-400 hover:text-navy-600 transition-colors"
+      on:click={toggleStatus}
+      aria-label="Toggle task status"
+    >
+      {#if status === 'completed'}
+        <CheckCircle class="w-5 h-5" />
+      {:else}
+        <Circle class="w-5 h-5" />
+      {/if}
+    </button>
+
+    <div class="flex-1">
+      <input
+        bind:this={titleInput}
+        type="text"
+        bind:value={title}
+        class="w-full px-0 py-2 border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-teal-500 bg-transparent transition-colors"
+        placeholder="What needs to be done?"
+        required
+      />
+    </div>
+
+    <button
+      type="submit"
+      class="text-navy-400 hover:text-navy-600 transition-colors"
+      aria-label="Submit task"
+    >
+      <SendHorizontal class="w-5 h-5" />
+    </button>
+  </div>
 
   <TaskFormField id="description">
     <textarea
@@ -104,28 +131,13 @@
 
   <TaskFormField id="tags">
     <TagInput 
-    bind:selectedTags 
-    on:keydown={(e) => {
-      if (e.key === 'Enter') {
-        if (e.ctrlKey) {
-          e.preventDefault(); // Prevent default behavior for Ctrl+Enter
-          handleSubmit(); // Custom Ctrl+Enter action
-        } else {
-          e.preventDefault(); // Prevent default behavior for plain Enter, if necessary
-          console.log('Enter pressed, but no action taken.');
+      bind:selectedTags 
+      on:keydown={(e) => {
+        if (e.key === 'Enter' && e.ctrlKey) {
+          e.preventDefault();
+          handleSubmit();
         }
-      }
-    }}
-  />
-  
+      }}
+    />
   </TaskFormField>
-
-  <div class="flex justify-end gap-2">
-    <button
-      type="submit"
-      class="px-4 py-2 bg-navy-600 text-white rounded-md hover:bg-navy-700 transition-colors"
-    >
-      {isEditing ? 'Update' : 'Create'} Task
-    </button>
-  </div>
 </form>
