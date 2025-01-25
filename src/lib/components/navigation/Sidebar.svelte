@@ -1,13 +1,24 @@
 <script lang="ts">
   import { selectedTags } from '$lib/stores/filters';
+  import Timer from '$lib/Components/Timer.svelte'
   import { Calendar, CheckSquare, RotateCcw, Book } from 'lucide-svelte';
   import QuickTags from '../QuickTags.svelte';
   import { page } from '$app/stores';
+
+  export const commitHash = __VERCEL_GIT_COMMIT_SHA__;
+  export const branchName = __VERCEL_GIT_COMMIT_REF__;
+  export const deployedUrl = __VERCEL_URL__;
+
 </script>
 
 <nav class="p-4 space-y-6 font-jetbrains-mono">
   <div class="space-y-2">
     <h3 class="px-4 text-sm font-medium text-navy-400">Tasks</h3>
+<main class="min-h-screen bg-gray-50 flex items-center justify-center">
+  <Timer />
+</main>
+
+
     <a
       href="/"
       class="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors
@@ -52,14 +63,6 @@
   <div class="space-y-2">
     <h3 class="px-4 text-sm font-medium text-navy-400">Admin</h3>
     <div class="px-4">
-
-<script>
-  export const commitHash = __VERCEL_GIT_COMMIT_SHA__;
-  export const branchName = __VERCEL_GIT_COMMIT_REF__;
-  export const deployedUrl = __VERCEL_URL__;
-</script>
-
-
 
   <p>
     Commit: <strong>{commitHash}</strong> (Branch: <strong>{branchName}</strong>)
