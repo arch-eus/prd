@@ -1,6 +1,6 @@
 <script lang="ts">
   import { selectedTags } from '$lib/stores/filters';
-  import Timer from '$lib/Components/Timer.svelte'
+  import Timer from '$lib/components/timer.svelte';
   import { Calendar, CheckSquare, RotateCcw, Book } from 'lucide-svelte';
   import QuickTags from '../QuickTags.svelte';
   import { page } from '$app/stores';
