@@ -1,10 +1,14 @@
 <script lang="ts">
+  import { createEventDispatcher } from 'svelte';
   import { X, Tag } from 'lucide-svelte';
   import { derived } from 'svelte/store';
   import { taskStore } from '$lib/stores';
   
   export let selectedTags: string[] = [];
   let tagInput = '';
+  let selectedSuggestionIndex = -1;
+  
+  const dispatch = createEventDispatcher();
   
   const allTags = derived(taskStore, $store => {
     const tags = new Set<string>();
@@ -25,6 +29,7 @@
       selectedTags = [...selectedTags, trimmedTag];
     }
     tagInput = '';
+    selectedSuggestionIndex = -1;
   }
   
   function removeTag(tag: string) {
@@ -32,9 +37,30 @@
   }
   
   function handleKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter' && event.ctrlKey) {
+      // Let parent form handle Ctrl+Enter
+      dispatch('keydown', event);
+      return;
+    }
+
     if (event.key === 'Enter' && tagInput) {
       event.preventDefault();
-      addTag(tagInput);
+      if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < suggestions.length) {
+        addTag(suggestions[selectedSuggestionIndex]);
+      } else {
+        addTag(tagInput);
+      }
+    } else if (event.key === 'ArrowDown' && suggestions.length > 0) {
+      event.preventDefault();
+      selectedSuggestionIndex = (selectedSuggestionIndex + 1) % suggestions.length;
+    } else if (event.key === 'ArrowUp' && suggestions.length > 0) {
+      event.preventDefault();
+      selectedSuggestionIndex = selectedSuggestionIndex <= 0 
+        ? suggestions.length - 1 
+        : selectedSuggestionIndex - 1;
+    } else if (event.key === 'Escape') {
+      tagInput = '';
+      selectedSuggestionIndex = -1;
     }
   }
 </script>
@@ -67,14 +93,15 @@
     
     {#if tagInput && suggestions.length > 0}
       <div class="absolute z-10 mt-1 w-full bg-white border border-navy-200 rounded-md shadow-lg">
-        {#each suggestions as tag}
+        {#each suggestions as suggestion, i}
           <button
             type="button"
             class="w-full text-left px-3 py-2 text-sm hover:bg-navy-50 flex items-center gap-2"
-            on:click={() => addTag(tag)}
+            class:bg-navy-50={i === selectedSuggestionIndex}
+            on:click={() => addTag(suggestion)}
           >
             <Tag class="w-4 h-4" />
-            {tag}
+            {suggestion}
           </button>
         {/each}
       </div>

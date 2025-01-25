@@ -48,6 +48,29 @@
       <QuickTags bind:selectedTags={$selectedTags} vertical={true} />
     </div>
   </div>
-</nav>
 
-<!-- TODO: add a version number here, preferably the one from Vercel  -->
+  <div class="space-y-2">
+    <h3 class="px-4 text-sm font-medium text-navy-400">Admin</h3>
+    <div class="px-4">
+
+<script>
+  export const commitHash = __VERCEL_GIT_COMMIT_SHA__;
+  export const branchName = __VERCEL_GIT_COMMIT_REF__;
+  export const deployedUrl = __VERCEL_URL__;
+</script>
+
+
+
+  <p>
+    Commit: <strong>{commitHash}</strong> (Branch: <strong>{branchName}</strong>)
+  </p>
+  <p>
+    <a class="commit-link" href={`https://${deployedUrl}`} target="_blank" rel="noopener noreferrer">
+      View Deployment
+    </a>
+  </p>
+
+    </div>
+  </div>
+
+</nav>

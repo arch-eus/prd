@@ -1,10 +1,11 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from 'svelte';
-  import { Circle, CheckCircle, SendHorizontal } from 'lucide-svelte';
+  import { Circle, CheckCircle, Send } from 'lucide-svelte';
   import type { Task } from '$lib/types/task';
   import TagInput from './TagInput.svelte';
   import TaskFormField from './TaskFormField.svelte';
   import { normalizeDate, dateToInputValue } from '$lib/utils/dateUtils';
+  import { isBefore, startOfTomorrow } from 'date-fns';
   
   export let task: Partial<Task> = {};
   export let isEditing = false;
@@ -19,8 +20,18 @@
   let dueDate = dateToInputValue(task.dueDate ? normalizeDate(task.dueDate) : selectedDate);
   let selectedTags = task.labels || [];
   let recurrence = task.recurrence || null;
-  let status = task.status || (new Date(dueDate) < new Date() ? 'completed' : 'todo');
   let titleInput: HTMLInputElement;
+  let isCompleted = task.status === 'completed';
+  
+  // Update completed status when due date changes (only for new tasks)
+  $: {
+    if (!isEditing && dueDate) {
+      const dueDateTime = new Date(dueDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      isCompleted = isBefore(dueDateTime, today);
+    }
+  }
 
   onMount(() => {
     titleInput?.focus();
@@ -37,27 +48,40 @@
       notes,
       dueDate: dueDate ? normalizeDate(dueDate) : new Date(),
       labels: selectedTags,
-      status,
+      status: isCompleted ? 'completed' as const : 'todo' as const,
+      completedAt: isCompleted ? new Date() : undefined,
       recurrence
     };
     
     dispatch('submit', { task: taskData });
   }
 
-  function toggleStatus() {
-    status = status === 'completed' ? 'todo' : 'completed';
+  function handleKeydown(event: KeyboardEvent) {
+    // Prevent form submission on regular Enter
+    if (event.key === 'Enter' && !event.ctrlKey) {
+      event.preventDefault();
+      return;
+    }
+    
+    // Submit form on Ctrl+Enter
+    if (event.key === 'Enter' && event.ctrlKey) {
+      event.preventDefault();
+      handleSubmit();
+    }
   }
 </script>
 
-<form on:submit={handleSubmit} class="space-y-4">
+<form on:submit={handleSubmit} class="space-y-4" on:keydown={handleKeydown}>
   <div class="flex items-center gap-4">
     <button
       type="button"
       class="text-navy-400 hover:text-navy-600 transition-colors"
-      on:click={toggleStatus}
+      on:click={() => {
+        isCompleted = !isCompleted;
+      }}
       aria-label="Toggle task status"
     >
-      {#if status === 'completed'}
+      {#if isCompleted}
         <CheckCircle class="w-5 h-5" />
       {:else}
         <Circle class="w-5 h-5" />
@@ -80,7 +104,7 @@
       class="text-navy-400 hover:text-navy-600 transition-colors"
       aria-label="Submit task"
     >
-      <SendHorizontal class="w-5 h-5" />
+      <Send class="w-5 h-5" />
     </button>
   </div>
 
@@ -132,12 +156,7 @@
   <TaskFormField id="tags">
     <TagInput 
       bind:selectedTags 
-      on:keydown={(e) => {
-        if (e.key === 'Enter' && e.ctrlKey) {
-          e.preventDefault();
-          handleSubmit();
-        }
-      }}
+      on:keydown={handleKeydown}
     />
   </TaskFormField>
 </form>
