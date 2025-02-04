@@ -1,80 +1,105 @@
 <script lang="ts">
   import { X } from 'lucide-svelte';
-  import { derived } from 'svelte/store';
-  import { taskStore } from '$lib/stores/taskStore';
+  import { allTagsStore } from '$lib/stores/tagStore';
   
   export let selectedTags: string[] = [];
+  export let placeholder = 'Add tags...';
+  export let ariaLabel = 'Tag input';
+  
   let tagInput = '';
+  let dropdownVisible = false;
+  let selectedIndex = -1;
+  let inputElement: HTMLInputElement;
   
-  const allTags = derived(taskStore, $store => {
-    const tags = new Set<string>();
-    $store.tasks.forEach(task => {
-      task.labels?.forEach(label => tags.add(label));
-    });
-    return Array.from(tags);
-  });
-  
-  const filteredTags = derived([allTags], ([$allTags]) => {
-    if (!tagInput) return [];
-    const input = tagInput.toLowerCase();
-    return $allTags
-      .filter(tag => tag.toLowerCase().includes(input))
-      .filter(tag => !selectedTags.includes(tag));
-  });
-  
+  $: filteredTags = tagInput 
+    ? $allTagsStore
+        .filter(tag => tag.toLowerCase().includes(tagInput.toLowerCase()))
+        .filter(tag => !selectedTags.includes(tag))
+    : [];
+
   function addTag(tag: string) {
     if (!selectedTags.includes(tag)) {
       selectedTags = [...selectedTags, tag];
     }
     tagInput = '';
+    dropdownVisible = false;
+    selectedIndex = -1;
   }
   
   function removeTag(tag: string) {
     selectedTags = selectedTags.filter(t => t !== tag);
   }
-  
+
   function handleKeydown(event: KeyboardEvent) {
-    if (event.key === 'Enter' && tagInput) {
-      event.preventDefault();
-      addTag(tagInput);
+    switch(event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        selectedIndex = Math.min(selectedIndex + 1, filteredTags.length - 1);
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        selectedIndex = Math.max(selectedIndex - 1, -1);
+        break;
+      case 'Enter':
+        event.preventDefault();
+        if (selectedIndex >= 0) {
+          addTag(filteredTags[selectedIndex]);
+        } else if (tagInput) {
+          addTag(tagInput);
+        }
+        break;
+      case 'Escape':
+        dropdownVisible = false;
+        selectedIndex = -1;
+        break;
     }
   }
 </script>
 
-<div class="inline-flex flex-wrap items-center gap-2">
-  {#each selectedTags as tag}
-    <span class="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 text-sm group rounded-md">
-      {tag}
-      <button
-        type="button"
-        class="opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500"
-        on:click={() => removeTag(tag)}
-      >
-        <X class="w-3 h-3" />
-      </button>
-    </span>
-  {/each}
-
-  <div class="relative w-24">
+<div class="relative w-full">
+  <div class="flex flex-wrap gap-2 p-2 border rounded-md">
+    {#each selectedTags as tag (tag)}
+      <span class="flex items-center gap-1 px-2 py-1 bg-navy-100 rounded-full">
+        {tag}
+        <button
+          type="button"
+          class="hover:text-red-600"
+          on:click={() => removeTag(tag)}
+          aria-label="Remove {tag} tag"
+        >
+          <X size={16} />
+        </button>
+      </span>
+    {/each}
     <input
-      type="text"
       bind:value={tagInput}
-      placeholder="Add tag"
+      bind:this={inputElement}
+      type="text"
+      {placeholder}
+      aria-label={ariaLabel}
+      class="flex-1 min-w-[120px] outline-none"
+      on:focus={() => dropdownVisible = true}
+      on:blur={() => setTimeout(() => dropdownVisible = false, 200)}
       on:keydown={handleKeydown}
-      class="block w-full border-0 border-b-2 border-gray-200 focus:border-navy-500 focus:ring-0 focus:outline-none text-sm bg-transparent"
     />
-    {#if tagInput && $filteredTags.length > 0}
-      <div class="absolute left-0 z-10 w-48 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
-        {#each $filteredTags as tag}
-          <button
-            type="button"
-            class="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 first:rounded-t-md last:rounded-b-md"
-            on:click={() => addTag(tag)}
-          >
-            {tag}
-          </button>
-        {/each}
-      </div>
-    {/if}
   </div>
+
+  {#if dropdownVisible && filteredTags.length > 0}
+    <ul
+      class="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-48 overflow-y-auto"
+      role="listbox"
+    >
+      {#each filteredTags as tag, i (tag)}
+        <li
+          role="option"
+          aria-selected={i === selectedIndex}
+          class="px-3 py-2 hover:bg-navy-50 cursor-pointer
+            {i === selectedIndex ? 'bg-navy-50' : ''}"
+          on:mousedown={() => addTag(tag)}
+        >
+          {tag}
+        </li>
+      {/each}
+    </ul>
+  {/if}
 </div>

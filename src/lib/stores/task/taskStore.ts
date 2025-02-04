@@ -1,24 +1,19 @@
-/**
- * Task Store
- * 
- * Manages the application's task data using IndexedDB for persistence.
- * Provides methods for CRUD operations and task filtering.
- */
-
 import { writable, derived } from 'svelte/store';
-import type { Task } from '$lib/utils/types';
-import { getTasks, saveTasks } from '$lib/utils/storage';
-import { normalizeDate } from '$lib/utils/dateUtils';
+import type { Task, NewTask, TaskUpdate } from '$lib/types/task';
+import type { Status } from '$lib/types/common';
+import { TASK_STATUS } from '$lib/constants/task';
+import { getTasks, saveTasks } from '$lib/utils/storage/taskStorage';
+import { normalizeDate } from '$lib/utils/date/dateUtils';
 
 interface State {
   tasks: Task[];
-  loading: boolean;
+  status: Status;
   error: string | null;
 }
 
 const initialState: State = {
   tasks: [],
-  loading: false,
+  status: 'idle',
   error: null
 };
 
@@ -28,36 +23,31 @@ function createTaskStore() {
   return {
     subscribe,
     
-    // Initialize store with data from IndexedDB
     async init() {
-      update(state => ({ ...state, loading: true }));
+      update(state => ({ ...state, status: 'loading' }));
       try {
         const tasks = await getTasks();
-        set({ 
-          tasks: tasks.map(normalizeTask), 
-          loading: false, 
-          error: null 
-        });
+        const normalizedTasks = tasks.map(normalizeTaskDates);
+        set({ tasks: normalizedTasks, status: 'success', error: null });
       } catch (error) {
-        console.error('Failed to initialize task store:', error);
-        set({ 
-          tasks: [], 
-          loading: false, 
-          error: 'Failed to load tasks' 
-        });
+        update(state => ({
+          ...state,
+          status: 'error',
+          error: 'Failed to load tasks'
+        }));
       }
     },
 
-    // Add a new task
-    async addTask(task: Partial<Task>) {
+    async addTask(task: NewTask) {
       update(state => {
-        const newTask = normalizeTask({
+        const newTask: Task = {
           ...task,
           id: crypto.randomUUID(),
           createdAt: new Date(),
           updatedAt: new Date(),
-          order: state.tasks.length
-        });
+          order: state.tasks.length,
+          dueDate: task.dueDate ? normalizeDate(task.dueDate) : undefined
+        };
         
         const updatedTasks = [...state.tasks, newTask];
         saveTasks(updatedTasks);
@@ -65,12 +55,16 @@ function createTaskStore() {
       });
     },
 
-    // Update an existing task
-    async updateTask(id: string, updates: Partial<Task>) {
+    async updateTask(id: string, updates: TaskUpdate) {
       update(state => {
         const updatedTasks = state.tasks.map(task =>
           task.id === id
-            ? { ...task, ...updates, updatedAt: new Date() }
+            ? { 
+                ...task, 
+                ...updates,
+                updatedAt: new Date(),
+                dueDate: updates.dueDate ? normalizeDate(updates.dueDate) : task.dueDate
+              }
             : task
         );
         
@@ -79,10 +73,33 @@ function createTaskStore() {
       });
     },
 
-    // Delete a task
     async deleteTask(id: string) {
       update(state => {
         const updatedTasks = state.tasks.filter(task => task.id !== id);
+        saveTasks(updatedTasks);
+        return { ...state, tasks: updatedTasks };
+      });
+    },
+
+    async reorderTasks(taskId: string, newOrder: number) {
+      update(state => {
+        const task = state.tasks.find(t => t.id === taskId);
+        if (!task) return state;
+
+        const oldOrder = task.order;
+        const updatedTasks = state.tasks.map(t => {
+          if (t.id === taskId) {
+            return { ...t, order: newOrder };
+          }
+          if (newOrder > oldOrder && t.order <= newOrder && t.order > oldOrder) {
+            return { ...t, order: t.order - 1 };
+          }
+          if (newOrder < oldOrder && t.order >= newOrder && t.order < oldOrder) {
+            return { ...t, order: t.order + 1 };
+          }
+          return t;
+        });
+
         saveTasks(updatedTasks);
         return { ...state, tasks: updatedTasks };
       });
@@ -90,22 +107,26 @@ function createTaskStore() {
   };
 }
 
-// Helper function to normalize task data
-function normalizeTask(task: Partial<Task>): Task {
+function normalizeTaskDates(task: Task): Task {
   return {
-    id: task.id || crypto.randomUUID(),
-    title: task.title || '',
-    description: task.description,
-    notes: task.notes,
-    status: task.status || 'todo',
-    labels: task.labels || [],
+    ...task,
     dueDate: task.dueDate ? normalizeDate(task.dueDate) : undefined,
-    completedAt: task.completedAt ? new Date(task.completedAt) : undefined,
-    order: typeof task.order === 'number' ? task.order : 0,
-    createdAt: new Date(task.createdAt || new Date()),
-    updatedAt: new Date(task.updatedAt || new Date()),
-    recurrence: task.recurrence || null
+    createdAt: new Date(task.createdAt),
+    updatedAt: new Date(task.updatedAt),
+    completedAt: task.completedAt ? new Date(task.completedAt) : undefined
   };
 }
 
 export const taskStore = createTaskStore();
+
+export const todoTasks = derived(taskStore, $store => 
+  $store.tasks
+    .filter(task => task.status === TASK_STATUS.TODO)
+    .sort((a, b) => a.order - b.order)
+);
+
+export const completedTasks = derived(taskStore, $store =>
+  $store.tasks
+    .filter(task => task.status === TASK_STATUS.COMPLETED)
+    .sort((a, b) => (b.completedAt?.getTime() || 0) - (a.completedAt?.getTime() || 0))
+);
