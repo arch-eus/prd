@@ -15,6 +15,7 @@
     "@sveltejs/adapter-auto": "^3.1.1",
     "@sveltejs/kit": "^2.4.3",
     "@sveltejs/vite-plugin-svelte": "^3.0.1",
+    "@tailwindcss/forms": "^0.5.7",
     "autoprefixer": "^10.4.17",
     "postcss": "^8.4.33",
     "svelte": "^4.2.9",
@@ -26,8 +27,12 @@
     "vitest": "^1.2.2"
   },
   "dependencies": {
+    "@floating-ui/dom": "^1.6.3",
+    "@skeletonlabs/skeleton": "^2.8.0",
+    "@skeletonlabs/tw-plugin": "^0.3.1",
     "date-fns": "^3.3.1",
     "idb-keyval": "^6.2.1",
-    "lucide-svelte": "^0.314.0"
+    "lucide-svelte": "^0.314.0",
+    "vite-plugin-tailwind-purgecss": "^0.2.0"
   }
 }

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { Menu, Plus, Mic } from 'lucide-svelte';
   import { createEventDispatcher } from 'svelte';
+  import { Menu, Plus, Mic } from 'lucide-svelte';
   import SearchBar from '../search/SearchBar.svelte';
   
   export let searchInput: HTMLInputElement | null = null;
@@ -58,8 +58,7 @@
 
     <div class="flex items-center gap-2">
       <button
-        class="p-2 hover:bg-navy-50 rounded-md relative"
-        class:text-teal-600={isListening}
+        class="p-2 hover:bg-navy-50 rounded-md relative {isListening ? 'text-teal-600' : ''}"
         on:click={startSpeechRecognition}
         title="Add task by voice"
       >
@@ -67,6 +66,7 @@
         {#if isListening}
           <span class="absolute top-0 right-0 w-2 h-2 bg-teal-500 rounded-full" />
         {/if}
+        }
       </button>
       
       <button

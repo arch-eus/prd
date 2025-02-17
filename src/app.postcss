@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body { @apply h-full overflow-hidden; }
+
+@layer base {
+  :root [data-theme="modern"] {
+    --theme-font-family-base: 'JetBrains Mono', monospace;
+    --theme-font-family-heading: 'JetBrains Mono', monospace;
+  }
+  
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: none;
+  }
+}

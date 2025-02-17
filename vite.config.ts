@@ -1,13 +1,24 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
+import { purgeCss } from 'vite-plugin-tailwind-purgecss';
+import { join } from 'path';
+import { skeleton } from '@skeletonlabs/tw-plugin';
 
 export default defineConfig({
-  plugins: [sveltekit()],
-  define: {
-    __VERCEL_GIT_COMMIT_SHA__: JSON.stringify(process.env.VERCEL_GIT_COMMIT_SHA),
-    __VERCEL_GIT_COMMIT_REF__: JSON.stringify(process.env.VERCEL_GIT_COMMIT_REF),
-    __VERCEL_URL__: JSON.stringify(process.env.VERCEL_URL),
-  },
+  plugins: [
+    sveltekit(),
+    purgeCss(),
+    skeleton({
+      themes: {
+        preset: [
+          {
+            name: 'modern',
+            enhancements: true,
+          },
+        ],
+      },
+    }),
+  ],
   server: {
     port: 5173,
     host: true,
@@ -16,7 +27,7 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    include: ['idb-keyval', 'date-fns', 'lucide-svelte'],
+    include: ['@skeletonlabs/skeleton', 'idb-keyval', 'date-fns', 'lucide-svelte'],
     exclude: ['@sveltejs/kit']
   },
   build: {

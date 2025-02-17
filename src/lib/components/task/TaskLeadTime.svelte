@@ -14,6 +14,6 @@
   })();
 </script>
 
-<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700">
+<span class="chip variant-filled-error">
   +{leadTime}
 </span>

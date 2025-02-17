@@ -2,7 +2,7 @@
   import { taskStore, filteredTasks } from '$lib/stores/task';
   import { selectedDate, selectedTags } from '$lib/stores/filters';
   import { searchQuery, searchResults } from '$lib/stores/search';
-  import TaskList from '$lib/components/TaskList.svelte';
+  import TaskList from '$lib/components/task/TaskList.svelte';
   import TaskFormModal from '$lib/components/TaskFormModal.svelte';
   import CalendarView from '$lib/components/calendar/CalendarView.svelte';
   import TaskDetails from '$lib/components/task/TaskDetails.svelte';
@@ -42,9 +42,7 @@
 </script>
 
 <div class="max-w-5xl mx-auto space-y-6">
-  <CalendarView 
-    bind:selectedDate={$selectedDate}
-  />
+  <CalendarView bind:selectedDate={$selectedDate} />
 
   <TaskFormModal
     show={showEditModal}
@@ -66,14 +64,9 @@
     }}
   >
     {#if selectedTask}
-      <TaskDetails 
-        task={selectedTask}
-        on:close={() => {
-          showDetailsModal = false;
-          selectedTask = null;
-        }}
-      />
+      <TaskDetails task={selectedTask} />
     {/if}
+    }
   </Modal>
 
   <TaskList 

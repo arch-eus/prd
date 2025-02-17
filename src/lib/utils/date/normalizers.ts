@@ -3,8 +3,8 @@
  */
 import { parseISO, startOfDay } from 'date-fns';
 
-export function normalizeDate(date: Date | string | undefined): Date | undefined {
-  if (!date) return undefined;
+export function normalizeDate(date: Date | string | undefined): Date {
+  if (!date) return startOfDay(new Date());
   
   // If it's a string, ensure we're parsing it correctly
   if (typeof date === 'string') {

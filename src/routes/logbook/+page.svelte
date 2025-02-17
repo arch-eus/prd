@@ -21,7 +21,7 @@
   }
 </script>
 
-<div class="space-y-6">
+<div class="max-w-5xl mx-auto space-y-6">
   <div class="flex justify-between items-center">
     <h2 class="text-2xl font-bold text-navy-900 font-jetbrains-mono">Logbook</h2>
     
@@ -37,8 +37,12 @@
   <LogbookTagFilter bind:selectedTags />
   
   {#if $filteredTasks.length === 0}
-    <p class="text-navy-500 text-center py-8 font-jetbrains-mono">No completed tasks</p>
+    <div class="bg-surface p-8 rounded-lg shadow-soft">
+      <p class="text-navy-500 text-center font-jetbrains-mono">No completed tasks</p>
+    </div>
   {:else}
-    <LogbookTable tasks={$filteredTasks} />
+    <div class="bg-surface rounded-lg shadow-soft overflow-hidden">
+      <LogbookTable tasks={$filteredTasks} />
+    </div>
   {/if}
 </div>

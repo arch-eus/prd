@@ -1,10 +1,13 @@
 <script lang="ts">
-  import TaskItem from './TaskItem.svelte';
+  import { createEventDispatcher } from 'svelte';
   import type { Task } from '$lib/types/task';
+  import TaskItem from './TaskItem.svelte';
   import { taskStore } from '$lib/stores/task';
   import { searchQuery } from '$lib/stores/search';
 
   export let tasks: Task[] = [];
+
+  const dispatch = createEventDispatcher();
 
   function handleComplete(event: CustomEvent) {
     const task = tasks.find(t => t.id === event.detail.id);
@@ -29,9 +32,9 @@
 
 <div class="space-y-4">
   {#if tasks.length === 0}
-    <p class="text-center text-navy-500 py-8">
-      No tasks for this day
-    </p>
+    <div class="card p-8 text-center">
+      <p class="text-surface-600-300-token">No tasks for this day</p>
+    </div>
   {:else}
     {#each tasks as task (task.id)}
       <TaskItem

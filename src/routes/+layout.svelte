@@ -1,5 +1,6 @@
 <script lang="ts">
-  import '../app.css';
+  import '../app.postcss';
+  import { AppShell, AppBar } from '@skeletonlabs/skeleton';
   import { onMount } from 'svelte';
   import { taskStore } from '$lib/stores';
   import { selectedTags, selectedDate } from '$lib/stores/filters';
@@ -15,7 +16,7 @@
   let showHelpModal = false;
   let initialTaskTitle = '';
   let searchInput: HTMLInputElement | null = null;
-  let taskFormRef: { submitForm: () => void } | null = null;
+  let taskFormRef: { handleSubmit: () => void } | null = null;
   
   onMount(() => {
     taskStore.init();
@@ -29,7 +30,7 @@
     const handleKeydown = setupKeyboardShortcuts({
       showHelp: () => showHelpModal = true,
       showNewTask: () => showTaskModal = true,
-      submitForm: () => taskFormRef?.submitForm(),
+      submitForm: () => taskFormRef?.handleSubmit(),
       closeModals: closeAllModals,
       searchInput
     });
@@ -61,7 +62,7 @@
   function handleTaskSubmit(event: CustomEvent) {
     const task = {
       ...event.detail.task,
-      labels: event.detail.task.labels?.length ? event.detail.task.labels : [...($selectedTags || [])],
+      labels: event.detail.task.labels?.length ? event.detail.task.labels : [...($selectedTags)],
       dueDate: $selectedDate || new Date()
     };
     
@@ -73,48 +74,52 @@
 
 <svelte:window on:mousemove={handleMouseMove} />
 
-<div class="min-h-screen bg-background font-jetbrains-mono">
-  <TopBar 
-    bind:searchInput
-    on:toggleSidebar={() => isSidebarOpen = !isSidebarOpen}
-    on:newTask={handleNewTask}
-  />
+<AppShell>
+  <svelte:fragment slot="header">
+    <AppBar background="bg-surface-100-800-token">
+      <TopBar 
+        bind:searchInput
+        on:toggleSidebar={() => isSidebarOpen = !isSidebarOpen}
+        on:newTask={handleNewTask}
+      />
+    </AppBar>
+  </svelte:fragment>
 
-  <KeyboardShortcuts bind:show={showHelpModal} />
-  <TaskFormModal
-    bind:this={taskFormRef}
-    show={showTaskModal}
-    task={{ 
-      title: initialTaskTitle,
-      labels: $selectedTags,
-      dueDate: $selectedDate || new Date()
-    }}
-    on:submit={handleTaskSubmit}
-    on:close={() => {
-      showTaskModal = false;
-      initialTaskTitle = '';
-    }}
-  />
-
-  <div class="flex pt-16">
-    <aside
-      class="fixed inset-y-0 left-0 pt-16 w-64 bg-surface border-r border-navy-100 transform transition-transform duration-300 ease-in-out lg:translate-x-0 z-20 {isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}"
+  <svelte:fragment slot="sidebarLeft">
+    <div 
+      class="fixed inset-y-0 left-0 pt-16 w-64 bg-surface-100-800-token border-r border-surface-500/30 transform transition-transform duration-300 ease-in-out lg:translate-x-0 z-20 {isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}"
       on:mouseenter={handleSidebarMouseEnter}
     >
       <Sidebar />
-    </aside>
+    </div>
+  </svelte:fragment>
 
-    <main class="flex-1 lg:pl-64">
-      <div class="p-4 sm:p-6 lg:p-8">
-        <slot />
-      </div>
-    </main>
+  <div class="container mx-auto p-4 space-y-8">
+    <slot />
   </div>
+</AppShell>
 
-  {#if isSidebarOpen}
-    <div
-      class="fixed inset-0 bg-navy-900/20 transition-opacity lg:hidden z-10"
-      on:click={() => isSidebarOpen = false}
-    ></div>
-  {/if}
-</div>
+<KeyboardShortcuts bind:show={showHelpModal} />
+
+<TaskFormModal
+  bind:this={taskFormRef}
+  show={showTaskModal}
+  task={{
+    title: initialTaskTitle,
+    labels: $selectedTags,
+    dueDate: $selectedDate || new Date()
+  }}
+  on:submit={handleTaskSubmit}
+  on:close={() => {
+    showTaskModal = false;
+    initialTaskTitle = '';
+  }}
+/>
+
+{#if isSidebarOpen}
+  <div
+    class="fixed inset-0 bg-black/20 transition-opacity lg:hidden z-10"
+    on:click={() => isSidebarOpen = false}
+  ></div>
+{/if}
+}

@@ -37,3 +37,5 @@
     }
   }
 </script>
+
+<!-- Rest of the component remains the same -->

@@ -18,7 +18,7 @@
   }
 </script>
 
-<div class="mb-8 font-jetbrains-mono">
+<div class="card p-4 mb-8">
   <CalendarHeader bind:currentDate={selectedDate} />
   
   <div class="mt-4 max-w-screen-sm">
@@ -27,13 +27,14 @@
     <div class="grid grid-cols-7 gap-1">
       {#each weekDays as date}
         <button
-          class="w-8 h-8 mx-auto flex items-center justify-center rounded-full transition-colors relative
-            {isToday(date) ? 'text-teal-600 font-bold ring-2 ring-teal-500' : 'text-navy-800'}
-            {isSelected(date) ? 'bg-navy-600 !text-white' : ''}
-            {!isToday(date) && !isSelected(date) ? 'hover:bg-navy-50' : ''}"
+          class="btn variant-ghost aspect-square p-0 flex items-center justify-center"
+          class:variant-filled-primary={isSelected(date)}
+          class:variant-soft-secondary={isToday(date) && !isSelected(date)}
           on:click={() => selectedDate = startOfDay(date)}
         >
-          {format(date, 'd')}
+          <span class="text-base">
+            {format(date, 'd')}
+          </span>
         </button>
       {/each}
     </div>

@@ -16,7 +16,7 @@ import { searchQuery } from '$lib/stores/search';
 interface KeyboardHandlers {
   showHelp: () => void;
   showNewTask: () => void;
-  submitForm: () => void;
+  formRef: { handleSubmit: () => void } | null;
   closeModals: () => void;
   searchInput: HTMLInputElement | null;
 }
@@ -24,7 +24,7 @@ interface KeyboardHandlers {
 export function setupKeyboardShortcuts({
   showHelp,
   showNewTask,
-  submitForm,
+  formRef,
   closeModals,
   searchInput
 }: KeyboardHandlers) {
@@ -32,7 +32,7 @@ export function setupKeyboardShortcuts({
     // Handle Ctrl+Enter for form submission
     if (event.key === 'Enter' && event.ctrlKey) {
       event.preventDefault();
-      submitForm();
+      formRef?.handleSubmit?.();
       return;
     }
 

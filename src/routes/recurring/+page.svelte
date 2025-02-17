@@ -25,7 +25,7 @@
   }
 </script>
 
-<div class="space-y-6">
+<div class="max-w-5xl mx-auto space-y-6">
   <div class="flex justify-between items-center">
     <h2 class="text-2xl font-bold text-navy-900 font-jetbrains-mono">Recurring Tasks</h2>
     
@@ -39,8 +39,13 @@
   </div>
 
   {#if $recurringTasks.length === 0}
-    <p class="text-navy-500 text-center py-8 font-jetbrains-mono">No recurring tasks found</p>
+    <div class="bg-surface p-8 rounded-lg shadow-soft">
+      <p class="text-navy-500 text-center font-jetbrains-mono">No recurring tasks found</p>
+    </div>
   {:else}
-    <RecurringTaskTable tasks={$recurringTasks} />
+    <div class="bg-surface rounded-lg shadow-soft overflow-hidden">
+      <RecurringTaskTable tasks={$recurringTasks} />
+    </div>
   {/if}
+  }
 </div>
