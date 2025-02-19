@@ -29,13 +29,16 @@
 
 {#if show}
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-    <div 
+    <button 
       class="absolute inset-0 bg-navy-900/20"
       on:click={handleClose}
+      aria-label="Close modal"
     />
     
     <div 
       class="relative w-full max-w-lg bg-surface rounded-lg shadow-xl"
+      role="dialog"
+      aria-modal="true"
       on:click|stopPropagation
     >
       <div class="p-6">
@@ -56,7 +59,6 @@
           {isEditing}
           selectedTags={task.labels || initialTags}
           selectedDate={$selectedDate}
-          {submitForm}
           on:submit={handleSubmit}
         />
       </div>

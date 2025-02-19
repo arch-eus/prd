@@ -79,13 +79,16 @@
         class="input"
         placeholder="What needs to be done?"
         required
+        id="task-title"
+        aria-label="Task title"
       />
     </div>
   </div>
 
-  <label class="label">
+  <label for="task-description" class="label">
     <span>Description</span>
     <textarea
+      id="task-description"
       bind:value={description}
       class="textarea"
       rows="2"

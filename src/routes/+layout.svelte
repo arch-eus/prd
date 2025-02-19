@@ -1,6 +1,6 @@
 <script lang="ts">
   import '../app.postcss';
-  import { AppShell, AppBar } from '@skeletonlabs/skeleton';
+  import { AppShell, AppBar, Announcer } from '@skeletonlabs/skeleton';
   import { onMount } from 'svelte';
   import { taskStore } from '$lib/stores';
   import { selectedTags, selectedDate } from '$lib/stores/filters';
@@ -12,26 +12,47 @@
   
   let isSidebarOpen = false;
   let sidebarTimeout: number;
-  let showTaskModal = false;
-  let showHelpModal = false;
-  let initialTaskTitle = '';
   let searchInput: HTMLInputElement | null = null;
   let taskFormRef: { handleSubmit: () => void } | null = null;
-  
+  let showHelpModal = false;
+
+  // Consolidated task form state
+  const taskFormState = {
+    show: false,
+    initialTask: {
+      title: '',
+      labels: [] as string[],
+      dueDate: new Date()
+    },
+    reset() {
+      this.show = false;
+      this.initialTask = {
+        title: '',
+        labels: [],
+        dueDate: new Date()
+      };
+    },
+    open(title = '') {
+      this.initialTask = {
+        title,
+        labels: [...($selectedTags)],
+        dueDate: $selectedDate || new Date()
+      };
+      this.show = true;
+    }
+  };
+
   onMount(() => {
     taskStore.init();
     
-    function closeAllModals() {
-      showTaskModal = false;
-      showHelpModal = false;
-      initialTaskTitle = '';
-    }
-    
     const handleKeydown = setupKeyboardShortcuts({
       showHelp: () => showHelpModal = true,
-      showNewTask: () => showTaskModal = true,
+      showNewTask: () => taskFormState.open(),
       submitForm: () => taskFormRef?.handleSubmit(),
-      closeModals: closeAllModals,
+      closeModals: () => {
+        taskFormState.reset();
+        showHelpModal = false;
+      },
       searchInput
     });
     
@@ -55,8 +76,7 @@
   }
 
   function handleNewTask(event: CustomEvent) {
-    initialTaskTitle = event.detail?.title || '';
-    showTaskModal = true;
+    taskFormState.open(event.detail?.title);
   }
 
   function handleTaskSubmit(event: CustomEvent) {
@@ -67,59 +87,55 @@
     };
     
     taskStore.addTask(task);
-    showTaskModal = false;
-    initialTaskTitle = '';
+    taskFormState.reset();
   }
 </script>
 
 <svelte:window on:mousemove={handleMouseMove} />
 
-<AppShell>
-  <svelte:fragment slot="header">
-    <AppBar background="bg-surface-100-800-token">
-      <TopBar 
-        bind:searchInput
-        on:toggleSidebar={() => isSidebarOpen = !isSidebarOpen}
-        on:newTask={handleNewTask}
-      />
-    </AppBar>
-  </svelte:fragment>
+<Announcer />
+<div class="h-full overflow-hidden" data-theme="fennec">
+  <AppShell>
+    <svelte:fragment slot="header">
+      <AppBar class="bg-surface-100-800-token border-b border-surface-500/30">
+        <TopBar 
+          bind:searchInput
+          on:toggleSidebar={() => isSidebarOpen = !isSidebarOpen}
+          on:newTask={handleNewTask}
+        />
+      </AppBar>
+    </svelte:fragment>
 
-  <svelte:fragment slot="sidebarLeft">
-    <div 
-      class="fixed inset-y-0 left-0 pt-16 w-64 bg-surface-100-800-token border-r border-surface-500/30 transform transition-transform duration-300 ease-in-out lg:translate-x-0 z-20 {isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}"
-      on:mouseenter={handleSidebarMouseEnter}
-    >
-      <Sidebar />
+    <svelte:fragment slot="sidebarLeft">
+      <div 
+        class="card fixed inset-y-0 left-0 pt-16 w-64 bg-surface-100-800-token border-r border-surface-500/30 transform transition-transform duration-300 ease-in-out lg:translate-x-0 z-20 {isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}"
+        on:mouseenter={handleSidebarMouseEnter}
+        role="navigation"
+      >
+        <Sidebar />
+      </div>
+    </svelte:fragment>
+
+    <div class="container mx-auto p-4 space-y-8 bg-surface-50-900-token">
+      <slot />
     </div>
-  </svelte:fragment>
+  </AppShell>
 
-  <div class="container mx-auto p-4 space-y-8">
-    <slot />
-  </div>
-</AppShell>
+  <KeyboardShortcuts bind:show={showHelpModal} />
 
-<KeyboardShortcuts bind:show={showHelpModal} />
-
-<TaskFormModal
-  bind:this={taskFormRef}
-  show={showTaskModal}
-  task={{
-    title: initialTaskTitle,
-    labels: $selectedTags,
-    dueDate: $selectedDate || new Date()
-  }}
-  on:submit={handleTaskSubmit}
-  on:close={() => {
-    showTaskModal = false;
-    initialTaskTitle = '';
-  }}
+  <TaskFormModal
+    bind:this={taskFormRef}
+    show={taskFormState.show}
+    task={taskFormState.initialTask}
+    on:submit={handleTaskSubmit}
+    on:close={() => taskFormState.reset()}
 />
 
-{#if isSidebarOpen}
-  <div
-    class="fixed inset-0 bg-black/20 transition-opacity lg:hidden z-10"
-    on:click={() => isSidebarOpen = false}
-  ></div>
-{/if}
-}
+  {#if isSidebarOpen}
+    <div
+      class="fixed inset-0 bg-black/20 transition-opacity lg:hidden z-10"
+      on:click={() => isSidebarOpen = false}
+      role="presentation"
+    ></div>
+  {/if}
+</div>

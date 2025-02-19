@@ -22,13 +22,17 @@
   class:hidden={!show}
   transition:fade={{ duration: 200 }}
 >
-  <div 
+  <button 
     class="absolute inset-0 bg-navy-900/20"
     on:click={handleClose}
+    aria-label="Close keyboard shortcuts"
   />
   
   <div 
     class="relative w-full max-w-lg bg-white rounded-lg shadow-xl"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Keyboard shortcuts"
     on:click|stopPropagation
   >
     <div class="p-6">

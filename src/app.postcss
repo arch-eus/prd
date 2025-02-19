@@ -2,14 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body { @apply h-full overflow-hidden; }
+html,
+body {
+	@apply h-full overflow-hidden bg-surface-50-900-token;
+}
+
+/* Ensure consistent Fennec theme token usage */
+[data-theme='fennec'] {
+	--theme-font-family-heading: 'Inter', sans-serif;
+	--theme-font-family-base: 'Inter', sans-serif;
+}
 
 @layer base {
-  :root [data-theme="modern"] {
-    --theme-font-family-base: 'JetBrains Mono', monospace;
-    --theme-font-family-heading: 'JetBrains Mono', monospace;
-  }
-  
   input:focus,
   textarea:focus,
   select:focus {

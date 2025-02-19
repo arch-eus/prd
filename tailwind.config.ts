@@ -1,9 +1,10 @@
 import { join } from 'path';
 import type { Config } from 'tailwindcss';
 import forms from '@tailwindcss/forms';
+import typography from '@tailwindcss/typography';
 import { skeleton } from '@skeletonlabs/tw-plugin';
 
-export default {
+const config = {
   darkMode: 'class',
   content: [
     './src/**/*.{html,js,svelte,ts}',
@@ -12,21 +13,20 @@ export default {
   theme: {
     extend: {
       fontFamily: {
+        'sans': ['Inter', 'sans-serif'],
         'jetbrains-mono': ['JetBrains Mono', 'monospace'],
       },
     },
   },
   plugins: [
     forms,
+    typography,
     skeleton({
       themes: {
-        preset: [
-          {
-            name: 'modern',
-            enhancements: true,
-          },
-        ],
-      },
-    }),
-  ],
+        preset: ['skeleton', 'modern', 'crimson', 'vintage', 'gold-nouveau', 'hamlindigo']
+      }
+    })
+  ]
 } satisfies Config;
+
+export default config;

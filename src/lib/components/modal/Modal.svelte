@@ -27,14 +27,17 @@
     transition:fade={{ duration: 200 }}
   >
     <!-- Backdrop -->
-    <div 
+    <button 
       class="fixed inset-0 bg-navy-900/20"
       on:click={handleClose}
+      aria-label="Close modal"
     />
     
     <!-- Modal -->
     <div 
       class="relative w-full max-w-lg bg-surface rounded-lg shadow-xl"
+      role="dialog"
+      aria-modal="true"
       on:click|stopPropagation
     >
       <div class="p-6">

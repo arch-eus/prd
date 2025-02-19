@@ -37,6 +37,9 @@
 <div
   class="card card-hover p-4 cursor-pointer"
   on:click={handleClick}
+  on:keydown={(e) => e.key === 'Enter' && handleClick()}
+  role="button"
+  tabindex="0"
 >
   <div class="flex items-center gap-4">
     <button
