@@ -2,7 +2,7 @@
  * Task validation utilities
  */
 import { isPastDate } from '../date/validators';
-import type { Task } from '$lib/utils/types';
+import type { Task } from '$lib/types/task';
 
 export function isTaskOverdue(task: Task): boolean {
   if (!task.dueDate || task.status === 'completed') return false;

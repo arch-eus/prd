@@ -1,132 +1,76 @@
-import { writable, derived } from 'svelte/store';
+import { derived } from 'svelte/store';
 import type { Task } from '$lib/types/task';
-import { getTasks, saveTasks } from '$lib/utils/storage';
-import { normalizeDate } from '$lib/utils/dateUtils';
-import { normalizeTask } from '$lib/utils/task/normalizers';
+import { syncedTaskStore } from './synced-store';
 import { selectedDate, selectedTags } from './filters';
 
-interface State {
-  tasks: Task[];
-  loading: boolean;
-  error: string | null;
-}
-
-const initialState: State = {
-  tasks: [],
-  loading: false,
-  error: null
-};
-
-function createTaskStore() {
-  const { subscribe, set, update } = writable<State>(initialState);
-
-  return {
-    subscribe,
-    
-    async init() {
-      update(state => ({ ...state, loading: true }));
-      try {
-        const tasks = await getTasks() || [];
-        set({ 
-          tasks: tasks.map(normalizeTask), 
-          loading: false, 
-          error: null 
-        });
-      } catch (error) {
-        console.error('Failed to initialize task store:', error);
-        set({ tasks: [], loading: false, error: 'Failed to load tasks' });
-      }
-    },
-
-    async addTask(task: Partial<Task>) {
-      update(state => {
-        const now = new Date();
-        const dueDate = task.dueDate ? normalizeDate(task.dueDate) : normalizeDate(now);
-        
-        const newTask = normalizeTask({
-          ...task,
-          id: crypto.randomUUID(),
-          createdAt: now,
-          updatedAt: now,
-          order: state.tasks.length,
-          status: 'todo',
-          dueDate
-        });
-        
-        const updatedTasks = [...state.tasks, newTask];
-        saveTasks(updatedTasks);
-        return { ...state, tasks: updatedTasks };
-      });
-    },
-
-    async updateTask(id: string, updates: Partial<Task>) {
-      update(state => {
-        const updatedTasks = state.tasks.map(task =>
-          task.id === id
-            ? { ...task, ...updates, updatedAt: new Date() }
-            : task
-        );
-        
-        saveTasks(updatedTasks);
-        return { ...state, tasks: updatedTasks };
-      });
-    },
-
-    async deleteTask(id: string) {
-      update(state => {
-        const updatedTasks = state.tasks.filter(task => task.id !== id);
-        saveTasks(updatedTasks);
-        return { ...state, tasks: updatedTasks };
-      });
-    }
-  };
-}
-
-export const taskStore = createTaskStore();
+// Export the syncedTaskStore as the main taskStore
+export const taskStore = syncedTaskStore;
 
 // Derived stores
 export const filteredTasks = derived(
   [taskStore, selectedDate, selectedTags],
   ([$store, $date, $tags]) => {
     if (!$store.tasks?.length) return [];
-    
     let tasks = $store.tasks;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     
     if ($date) {
       const startOfDay = new Date($date);
       startOfDay.setHours(0, 0, 0, 0);
+      const today = new Date(new Date().setHours(0, 0, 0, 0));
       
-      const isPastDate = startOfDay < today;
-      
-      if (isPastDate) {
-        // For past dates, show only completed tasks from that day
-        tasks = tasks.filter(t => 
+      // For past dates, show completed tasks or due tasks for that date
+      if (startOfDay < today) {
+        // 1. Tasks that were completed on the selected date
+        const completedOnDate = tasks.filter(t => 
           t.status === 'completed' && 
           t.completedAt && 
           new Date(t.completedAt).toDateString() === startOfDay.toDateString()
         );
-      } else {
-        // For today, show:
-        // 1. Tasks due today
-        // 2. Overdue tasks (past due date but not completed)
-        // For future dates, show only tasks due on that day
-        tasks = tasks.filter(t => {
-          if (t.status !== 'todo') return false;
-          if (!t.dueDate) return false;
-          
-          const dueDate = new Date(t.dueDate);
-          dueDate.setHours(0, 0, 0, 0);
-          
-          if (startOfDay.getTime() === today.getTime()) {
-            // For today, include overdue tasks
-            return dueDate <= today;
-          } else {
-            // For future dates, only show tasks due on that specific date
-            return dueDate.getTime() === startOfDay.getTime();
+        
+        // 2. Tasks that were due on the selected date, regardless of status
+        const tasksForDate = tasks.filter(t =>
+          t.dueDate &&
+          new Date(t.dueDate).toDateString() === startOfDay.toDateString()
+        );
+        
+        // Combine both sets (avoiding duplicates)
+        const combinedTaskIds = new Set();
+        const combinedTasks = [];
+        
+        // Add completed tasks first
+        for (const task of completedOnDate) {
+          combinedTaskIds.add(task.id);
+          combinedTasks.push(task);
+        }
+        
+        // Then add due tasks if not already included
+        for (const task of tasksForDate) {
+          if (!combinedTaskIds.has(task.id)) {
+            combinedTasks.push(task);
           }
-        });
+        }
+        
+        tasks = combinedTasks;
+      } else {
+        // For today and future dates, show todo tasks due on that day
+        const dueTodayTasks = tasks.filter(t => 
+          t.status === 'todo' && 
+          t.dueDate && 
+          new Date(t.dueDate).toDateString() === startOfDay.toDateString()
+        );
+        
+        // For today's view, also include overdue tasks from the past
+        if (startOfDay.toDateString() === today.toDateString()) {
+          const overdueTasks = tasks.filter(t =>
+            t.status === 'todo' &&
+            t.dueDate &&
+            new Date(t.dueDate) < today
+          );
+          
+          tasks = [...dueTodayTasks, ...overdueTasks];
+        } else {
+          tasks = dueTodayTasks;
+        }
       }
     }
 
@@ -136,7 +80,27 @@ export const filteredTasks = derived(
       );
     }
 
-    return tasks.sort((a, b) => (a.order || 0) - (b.order || 0));
+    // Sort tasks: completed tasks first, then by order for todos
+    return tasks.sort((a, b) => {
+      // First sort by status (completed first)
+      if (a.status === 'completed' && b.status !== 'completed') return -1;
+      if (a.status !== 'completed' && b.status === 'completed') return 1;
+      
+      // If both are completed, sort by completion date (most recent first)
+      if (a.status === 'completed' && b.status === 'completed') {
+        return (b.completedAt?.getTime() || 0) - (a.completedAt?.getTime() || 0);
+      }
+      
+      // If both are todo, sort overdue tasks first, then by order
+      const aIsOverdue = a.dueDate && new Date(a.dueDate) < new Date(new Date().setHours(0,0,0,0));
+      const bIsOverdue = b.dueDate && new Date(b.dueDate) < new Date(new Date().setHours(0,0,0,0));
+      
+      if (aIsOverdue && !bIsOverdue) return -1;
+      if (!aIsOverdue && bIsOverdue) return 1;
+      
+      // Finally sort by order
+      return (a.order || 0) - (b.order || 0);
+    });
   }
 );
 

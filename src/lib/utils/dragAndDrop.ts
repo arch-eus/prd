@@ -1,8 +1,7 @@
 import { writable } from 'svelte/store';
 import type { Task } from '$lib/types/task';
-import type { TaskStore } from '$lib/stores/taskStore';
 
-export function useDragAndDrop(tasks: Task[], taskStore: TaskStore) {
+export function useDragAndDrop(tasks: Task[], taskStore: any) {
   const draggedTask = writable<Task | null>(null);
   const draggedOverTask = writable<Task | null>(null);
 

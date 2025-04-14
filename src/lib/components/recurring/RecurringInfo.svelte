@@ -6,7 +6,7 @@
   export let nextDueDate: Date;
 </script>
 
-<span class="chip variant-soft">
+<span class="flex items-center gap-1 text-xs text-navy-400">
   <RotateCcw class="w-3 h-3" />
-  <span>{recurrence} · next: {format(nextDueDate, 'MMM d')}</span>
+  {recurrence} · next: {format(nextDueDate, 'MMM d')}
 </span>

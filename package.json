@@ -5,18 +5,21 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
+    "clean-dev": "rm -rf .svelte-kit && rm -rf node_modules/.vite && vite dev --force",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "generate-pwa-assets": "pwa-assets-generator --preset minimal",
+    "collaboration-server": "node collaboration-server.js"
   },
   "devDependencies": {
     "@sveltejs/adapter-auto": "^3.1.1",
     "@sveltejs/kit": "^2.4.3",
     "@sveltejs/vite-plugin-svelte": "^3.0.1",
-    "@tailwindcss/forms": "^0.5.7",
-    "@tailwindcss/typography": "^0.5.16",
+    "@types/uuid": "^10.0.0",
+    "@vite-pwa/assets-generator": "^1.0.0",
     "autoprefixer": "^10.4.17",
     "postcss": "^8.4.33",
     "svelte": "^4.2.9",
@@ -25,15 +28,23 @@
     "tslib": "^2.6.2",
     "typescript": "^5.3.3",
     "vite": "^5.0.12",
-    "vitest": "^1.2.2"
+    "vite-plugin-pwa": "^1.0.0",
+    "vitest": "^1.2.2",
+    "workbox-window": "^7.3.0"
   },
   "dependencies": {
-    "@floating-ui/dom": "^1.6.3",
-    "@skeletonlabs/skeleton": "^2.8.0",
-    "@skeletonlabs/tw-plugin": "^0.3.1",
+    "@effect/platform": "^0.69.9",
+    "@effect/schema": "^0.75.5",
+    "@stablelib/base64": "^2.0.1",
+    "@syncedstore/core": "^0.6.0",
+    "@syncedstore/svelte": "^0.6.0",
     "date-fns": "^3.3.1",
+    "effect": "^3.10.4",
     "idb-keyval": "^6.2.1",
     "lucide-svelte": "^0.314.0",
-    "vite-plugin-tailwind-purgecss": "^0.2.0"
+    "uuid": "^11.1.0",
+    "ws": "^8.18.1",
+    "y-indexeddb": "^9.0.12",
+    "y-websocket": "^3.0.0"
   }
 }

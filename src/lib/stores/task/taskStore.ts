@@ -9,6 +9,7 @@ import { writable, derived } from 'svelte/store';
 import type { Task } from '$lib/utils/types';
 import { getTasks, saveTasks } from '$lib/utils/storage';
 import { normalizeDate } from '$lib/utils/dateUtils';
+import { getNextDueDate } from '$lib/utils/task/recurrence';
 
 interface State {
   tasks: Task[];
@@ -73,6 +74,50 @@ function createTaskStore() {
             ? { ...task, ...updates, updatedAt: new Date() }
             : task
         );
+        
+        saveTasks(updatedTasks);
+        return { ...state, tasks: updatedTasks };
+      });
+    },
+    
+    // Complete a task, handling recurrence if needed
+    async completeTask(id: string) {
+      update(state => {
+        const task = state.tasks.find(t => t.id === id);
+        if (!task) return state;
+        
+        const now = new Date();
+        const updatedTasks = [...state.tasks];
+        
+        // Update the existing task
+        const taskIndex = updatedTasks.findIndex(t => t.id === id);
+        updatedTasks[taskIndex] = {
+          ...task,
+          status: 'completed',
+          completedAt: now,
+          updatedAt: now
+        };
+        
+        // For recurring tasks, create the next instance
+        if (task.recurrence && task.dueDate) {
+          try {
+            const nextDueDate = getNextDueDate(task);
+            if (nextDueDate) {
+              const newTask = {
+                ...task,
+                id: crypto.randomUUID(),
+                status: 'todo',
+                dueDate: nextDueDate,
+                completedAt: undefined,
+                createdAt: now,
+                updatedAt: now
+              };
+              updatedTasks.push(newTask);
+            }
+          } catch (error) {
+            console.error('Failed to create next recurring task', error);
+          }
+        }
         
         saveTasks(updatedTasks);
         return { ...state, tasks: updatedTasks };

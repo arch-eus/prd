@@ -1,27 +1,60 @@
 <script lang="ts">
-  import { derived } from 'svelte/store';
+  import { onMount } from 'svelte';
   import { Download } from 'lucide-svelte';
   import { completedTasks } from '$lib/stores';
-  import LogbookTagFilter from '$lib/components/logbook/LogbookTagFilter.svelte';
   import LogbookTable from '$lib/components/logbook/LogbookTable.svelte';
   import { exportToExcel } from '$lib/utils/export/excelExport';
+  import { selectedTags as tagStore } from '$lib/stores/filters';
+  import { syncedTaskStore as taskStore } from '$lib/stores/synced-store';
+  import Modal from '$lib/components/modal/Modal.svelte';
+  import TaskDetails from '$lib/components/task/TaskDetails.svelte';
+  
+  let showDetailsModal = false;
+  let selectedTask: any = null;
+  
+  // Handle events from search results
+  onMount(() => {
+    const handleEditEvent = (event: CustomEvent) => {
+      if (event.detail && event.detail.id) {
+        // For logbook, editing means viewing details
+        selectedTask = $completedTasks.find(task => task.id === event.detail.id);
+        if (selectedTask) {
+          showDetailsModal = true;
+        }
+      }
+    };
+    
+    const handleShowDetailsEvent = (event: CustomEvent) => {
+      if (event.detail && event.detail.id) {
+        selectedTask = $completedTasks.find(task => task.id === event.detail.id);
+        if (selectedTask) {
+          showDetailsModal = true;
+        }
+      }
+    };
+    
+    window.addEventListener('edit', handleEditEvent as EventListener);
+    window.addEventListener('showDetails', handleShowDetailsEvent as EventListener);
+    
+    return () => {
+      window.removeEventListener('edit', handleEditEvent as EventListener);
+      window.removeEventListener('showDetails', handleShowDetailsEvent as EventListener);
+    };
+  });
 
-  let selectedTags: string[] = [];
-
-  $: filteredTasks = derived(completedTasks, $tasks => 
-    selectedTags.length > 0
-      ? $tasks.filter(task => 
-          task.labels?.some(label => selectedTags.includes(label))
+  // Filter tasks by selected tags
+  $: filteredTasks = $tagStore.length > 0
+      ? $completedTasks.filter(task => 
+          task.labels?.some(label => $tagStore.includes(label))
         )
-      : $tasks
-  );
+      : $completedTasks;
 
   function handleExport() {
-    exportToExcel($filteredTasks);
+    exportToExcel(filteredTasks);
   }
 </script>
 
-<div class="max-w-5xl mx-auto space-y-6">
+<div class="space-y-6">
   <div class="flex justify-between items-center">
     <h2 class="text-2xl font-bold text-navy-900 font-jetbrains-mono">Logbook</h2>
     
@@ -34,15 +67,28 @@
     </button>
   </div>
   
-  <LogbookTagFilter bind:selectedTags />
-  
-  {#if $filteredTasks.length === 0}
-    <div class="bg-surface p-8 rounded-lg shadow-soft">
-      <p class="text-navy-500 text-center font-jetbrains-mono">No completed tasks</p>
-    </div>
+  {#if filteredTasks.length === 0}
+    <p class="text-navy-500 text-center py-8 font-jetbrains-mono">No completed tasks</p>
   {:else}
-    <div class="bg-surface rounded-lg shadow-soft overflow-hidden">
-      <LogbookTable tasks={$filteredTasks} />
-    </div>
+    <LogbookTable tasks={filteredTasks} />
   {/if}
 </div>
+
+<Modal
+  show={showDetailsModal}
+  title="Task Details"
+  on:close={() => {
+    showDetailsModal = false;
+    selectedTask = null;
+  }}
+>
+  {#if selectedTask}
+    <TaskDetails 
+      task={selectedTask}
+      on:close={() => {
+        showDetailsModal = false;
+        selectedTask = null;
+      }}
+    />
+  {/if}
+</Modal>

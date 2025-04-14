@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onMount, onDestroy } from 'svelte';
   import { X } from 'lucide-svelte';
   import type { Task } from '$lib/types/task';
   import { selectedDate } from '$lib/stores/filters';
@@ -25,20 +25,37 @@
   function submitForm() {
     formRef?.handleSubmit();
   }
+  
+  // Handle escape key globally for the modal
+  function handleKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape' && show) {
+      event.preventDefault();
+      handleClose();
+    }
+  }
+  
+  // Set up and tear down the global keydown handler
+  let keydownHandler: (e: KeyboardEvent) => void;
+  
+  onMount(() => {
+    keydownHandler = (e) => handleKeydown(e);
+    window.addEventListener('keydown', keydownHandler);
+  });
+  
+  onDestroy(() => {
+    window.removeEventListener('keydown', keydownHandler);
+  });
 </script>
 
 {#if show}
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-    <button 
+    <div 
       class="absolute inset-0 bg-navy-900/20"
       on:click={handleClose}
-      aria-label="Close modal"
     />
     
     <div 
       class="relative w-full max-w-lg bg-surface rounded-lg shadow-xl"
-      role="dialog"
-      aria-modal="true"
       on:click|stopPropagation
     >
       <div class="p-6">
@@ -59,6 +76,7 @@
           {isEditing}
           selectedTags={task.labels || initialTags}
           selectedDate={$selectedDate}
+          {submitForm}
           on:submit={handleSubmit}
         />
       </div>

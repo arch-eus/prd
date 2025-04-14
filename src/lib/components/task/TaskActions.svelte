@@ -9,9 +9,10 @@
 
 <div class="flex items-center gap-2">
   <button
-    class="w-5 h-5 rounded-full border-2 border-navy-200 hover:border-navy-600 flex items-center justify-center transition-colors"
-    on:click={() => dispatch('complete')}
-    aria-label="Toggle task completion"
+    class="w-5 h-5 rounded-full border-2 border-navy-200 hover:border-navy-400 flex items-center justify-center transition-colors"
+    on:click|stopPropagation={() => dispatch('complete')}
+    aria-label={isCompleted ? "Mark as incomplete" : "Mark as completed"}
+    title={isCompleted ? "Click to mark as incomplete" : "Click to mark as completed"}
   >
     {#if isCompleted}
       <Check class="w-3 h-3 text-navy-600" />

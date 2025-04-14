@@ -4,26 +4,12 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
   kit: {
-    adapter: adapter({
-      pages: 'build',
-      assets: 'build',
-      fallback: 'index.html',
-      precompress: false
-    }),
+    adapter: adapter(),
     csrf: {
       checkOrigin: false
     },
-    serviceWorker: {
-      register: false
-    },
-    prerender: {
-      handleMissingId: 'ignore'
-    },
-    paths: {
-      base: ''
-    },
     alias: {
-      $lib: 'src/lib'
+      $lib: './src/lib'
     }
   },
   preprocess: vitePreprocess()

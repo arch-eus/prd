@@ -16,23 +16,29 @@ import { searchQuery } from '$lib/stores/search';
 interface KeyboardHandlers {
   showHelp: () => void;
   showNewTask: () => void;
-  formRef: { handleSubmit: () => void } | null;
+  showSettings: () => void;
+  submitForm: () => void;
   closeModals: () => void;
+  navigatePrevWeek: () => void;
+  navigateNextWeek: () => void;
   searchInput: HTMLInputElement | null;
 }
 
 export function setupKeyboardShortcuts({
   showHelp,
   showNewTask,
-  formRef,
+  showSettings,
+  submitForm,
   closeModals,
+  navigatePrevWeek,
+  navigateNextWeek,
   searchInput
 }: KeyboardHandlers) {
   return function handleKeydown(event: KeyboardEvent) {
     // Handle Ctrl+Enter for form submission
     if (event.key === 'Enter' && event.ctrlKey) {
       event.preventDefault();
-      formRef?.handleSubmit?.();
+      submitForm();
       return;
     }
 
@@ -64,6 +70,10 @@ export function setupKeyboardShortcuts({
         event.preventDefault();
         showNewTask();
         break;
+      case ',':
+        event.preventDefault();
+        showSettings();
+        break;
       case '/':
         event.preventDefault();
         searchInput?.focus();
@@ -72,6 +82,18 @@ export function setupKeyboardShortcuts({
         event.preventDefault();
         selectedDate.set(new Date());
         goto('/');
+        break;
+      case 'ArrowLeft':
+        if (!event.altKey && !event.metaKey && !event.ctrlKey) {
+          event.preventDefault();
+          navigatePrevWeek();
+        }
+        break;
+      case 'ArrowRight':
+        if (!event.altKey && !event.metaKey && !event.ctrlKey) {
+          event.preventDefault();
+          navigateNextWeek();
+        }
         break;
     }
   };

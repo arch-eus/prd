@@ -1,28 +1,13 @@
 <script lang="ts">
-  import { format, addMonths, addYears } from 'date-fns';
+  import { format } from 'date-fns';
   import type { Task } from '$lib/types/task';
   import TaskItem from '../TaskItem.svelte';
+  import { getNextDueDate, getRecurrenceText } from '$lib/utils/task/recurrence';
 
   export let task: Task;
 
-  $: nextDueDate = task.dueDate && (() => {
-    switch (task.recurrence) {
-      case 'monthly':
-        return addMonths(task.dueDate, 1);
-      case 'quarterly':
-        return addMonths(task.dueDate, 3);
-      case 'yearly':
-        return addYears(task.dueDate, 1);
-      default:
-        return task.dueDate;
-    }
-  })();
-
-  $: recurrenceText = {
-    monthly: 'Monthly',
-    quarterly: 'Every 3 months',
-    yearly: 'Yearly'
-  }[task.recurrence!];
+  $: nextDueDate = task.dueDate && getNextDueDate(task);
+  $: recurrenceText = task.recurrence ? getRecurrenceText(task.recurrence) : '';
 </script>
 
 <div class="space-y-2">

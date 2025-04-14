@@ -1,58 +1,84 @@
 <script lang="ts">
-  import '../app.postcss';
-  import { AppShell, AppBar, Announcer } from '@skeletonlabs/skeleton';
+  import '../app.css';
   import { onMount } from 'svelte';
-  import { taskStore } from '$lib/stores';
+  import { syncedTaskStore as taskStore } from '$lib/stores/synced-store';
   import { selectedTags, selectedDate } from '$lib/stores/filters';
   import TopBar from '$lib/components/navigation/TopBar.svelte';
   import Sidebar from '$lib/components/navigation/Sidebar.svelte';
   import TaskFormModal from '$lib/components/TaskFormModal.svelte';
   import KeyboardShortcuts from '$lib/components/help/KeyboardShortcuts.svelte';
+  import SettingsModal from '$lib/components/SettingsModal.svelte';
   import { setupKeyboardShortcuts } from '$lib/utils/keyboard';
+  import SyncedStoreProvider from '$lib/components/SyncedStoreProvider.svelte';
+  import PWAHandler from '$lib/components/PWAHandler.svelte';
+  import PWAInstallBanner from '$lib/components/PWAInstallBanner.svelte';
+  import { page } from '$app/stores';
+  import { changeMnemonic, validateMnemonic } from '$lib/utils/mnemonic-manager';
+  import { addWeeks, subWeeks } from 'date-fns';
+  import { searchQuery, searchResults, isSearchActive } from '$lib/stores/search';
+  import TaskList from '$lib/components/TaskList.svelte';
   
   let isSidebarOpen = false;
   let sidebarTimeout: number;
-  let searchInput: HTMLInputElement | null = null;
-  let taskFormRef: { handleSubmit: () => void } | null = null;
+  let showTaskModal = false;
   let showHelpModal = false;
-
-  // Consolidated task form state
-  const taskFormState = {
-    show: false,
-    initialTask: {
-      title: '',
-      labels: [] as string[],
-      dueDate: new Date()
-    },
-    reset() {
-      this.show = false;
-      this.initialTask = {
-        title: '',
-        labels: [],
-        dueDate: new Date()
-      };
-    },
-    open(title = '') {
-      this.initialTask = {
-        title,
-        labels: [...($selectedTags)],
-        dueDate: $selectedDate || new Date()
-      };
-      this.show = true;
+  let showSettingsModal = false;
+  let initialTaskTitle = '';
+  let searchInput: HTMLInputElement | null = null;
+  let taskFormRef: { submitForm: () => void } | null = null;
+  
+  onMount(async () => {
+    try {
+      // Check if we have a passphrase in the URL
+      const url = new URL(window.location.href);
+      const passphraseParam = url.searchParams.get('passphrase');
+      
+      if (passphraseParam) {
+        try {
+          // Clean the URL to remove the passphrase
+          url.searchParams.delete('passphrase');
+          window.history.replaceState({}, '', url.toString());
+          
+          // Validate and apply the passphrase
+          const decodedPassphrase = decodeURIComponent(passphraseParam);
+          if (validateMnemonic(decodedPassphrase)) {
+            await changeMnemonic(decodedPassphrase);
+            console.log('Passphrase restored from URL parameter');
+          }
+        } catch (e) {
+          console.error('Failed to restore passphrase from URL:', e);
+        }
+      }
+      
+      // Initialize task store
+      await taskStore.init();
+    } catch (error) {
+      console.error('Failed to initialize task store:', error);
     }
-  };
-
-  onMount(() => {
-    taskStore.init();
+    
+    function closeAllModals() {
+      showTaskModal = false;
+      showHelpModal = false;
+      showSettingsModal = false;
+      initialTaskTitle = '';
+    }
+    
+    function navigatePrevWeek() {
+      $selectedDate = subWeeks($selectedDate, 1);
+    }
+    
+    function navigateNextWeek() {
+      $selectedDate = addWeeks($selectedDate, 1);
+    }
     
     const handleKeydown = setupKeyboardShortcuts({
       showHelp: () => showHelpModal = true,
-      showNewTask: () => taskFormState.open(),
-      submitForm: () => taskFormRef?.handleSubmit(),
-      closeModals: () => {
-        taskFormState.reset();
-        showHelpModal = false;
-      },
+      showNewTask: () => showTaskModal = true,
+      showSettings: () => showSettingsModal = true,
+      submitForm: () => taskFormRef?.submitForm(),
+      closeModals: closeAllModals,
+      navigatePrevWeek,
+      navigateNextWeek,
       searchInput
     });
     
@@ -76,66 +102,87 @@
   }
 
   function handleNewTask(event: CustomEvent) {
-    taskFormState.open(event.detail?.title);
+    initialTaskTitle = event.detail?.title || '';
+    showTaskModal = true;
   }
 
   function handleTaskSubmit(event: CustomEvent) {
     const task = {
       ...event.detail.task,
-      labels: event.detail.task.labels?.length ? event.detail.task.labels : [...($selectedTags)],
+      labels: event.detail.task.labels?.length ? event.detail.task.labels : [...($selectedTags || [])],
       dueDate: $selectedDate || new Date()
     };
     
     taskStore.addTask(task);
-    taskFormState.reset();
+    showTaskModal = false;
+    initialTaskTitle = '';
   }
 </script>
 
+<svelte:head>
+  <meta name="theme-color" content="#ffffff">
+  <link rel="manifest" href="/manifest.webmanifest">
+</svelte:head>
+
 <svelte:window on:mousemove={handleMouseMove} />
 
-<Announcer />
-<div class="h-full overflow-hidden" data-theme="fennec">
-  <AppShell>
-    <svelte:fragment slot="header">
-      <AppBar class="bg-surface-100-800-token border-b border-surface-500/30">
-        <TopBar 
-          bind:searchInput
-          on:toggleSidebar={() => isSidebarOpen = !isSidebarOpen}
-          on:newTask={handleNewTask}
-        />
-      </AppBar>
-    </svelte:fragment>
-
-    <svelte:fragment slot="sidebarLeft">
-      <div 
-        class="card fixed inset-y-0 left-0 pt-16 w-64 bg-surface-100-800-token border-r border-surface-500/30 transform transition-transform duration-300 ease-in-out lg:translate-x-0 z-20 {isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}"
-        on:mouseenter={handleSidebarMouseEnter}
-        role="navigation"
-      >
-        <Sidebar />
-      </div>
-    </svelte:fragment>
-
-    <div class="container mx-auto p-4 space-y-8 bg-surface-50-900-token">
-      <slot />
-    </div>
-  </AppShell>
+<SyncedStoreProvider>
+  <div class="min-h-screen bg-background font-jetbrains-mono">
+    <PWAHandler />
+    <TopBar 
+      bind:searchInput
+      on:toggleSidebar={() => isSidebarOpen = !isSidebarOpen}
+      on:newTask={handleNewTask}
+      on:edit={(e) => {
+        // Dispatch an event that page components can listen for
+        window.dispatchEvent(new CustomEvent('edit', { detail: e.detail }));
+      }}
+      on:showDetails={(e) => {
+        // Dispatch an event that page components can listen for
+        window.dispatchEvent(new CustomEvent('showDetails', { detail: e.detail }));
+      }}
+    />
 
   <KeyboardShortcuts bind:show={showHelpModal} />
-
+  <SettingsModal bind:show={showSettingsModal} />
   <TaskFormModal
     bind:this={taskFormRef}
-    show={taskFormState.show}
-    task={taskFormState.initialTask}
+    show={showTaskModal}
+    task={{ 
+      title: initialTaskTitle,
+      labels: $selectedTags,
+      dueDate: $selectedDate || new Date()
+    }}
     on:submit={handleTaskSubmit}
-    on:close={() => taskFormState.reset()}
-/>
+    on:close={() => {
+      showTaskModal = false;
+      initialTaskTitle = '';
+    }}
+  />
+
+  <div class="flex pt-16">
+    <aside
+      class="fixed inset-y-0 left-0 pt-16 w-64 bg-surface border-r border-navy-100 transform transition-transform duration-300 ease-in-out lg:translate-x-0 z-20 {isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}"
+      on:mouseenter={handleSidebarMouseEnter}
+    >
+      <Sidebar />
+    </aside>
+
+    <main class="flex-1 lg:pl-64">
+      <div class="p-4 sm:p-6 lg:p-8">
+        
+        <slot />
+      </div>
+    </main>
+  </div>
 
   {#if isSidebarOpen}
     <div
-      class="fixed inset-0 bg-black/20 transition-opacity lg:hidden z-10"
+      class="fixed inset-0 bg-navy-900/20 transition-opacity lg:hidden z-10"
       on:click={() => isSidebarOpen = false}
-      role="presentation"
     ></div>
   {/if}
+  
+  <PWAInstallBanner />
 </div>
+</SyncedStoreProvider>

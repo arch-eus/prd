@@ -21,8 +21,8 @@
   let fadingIn = false;
 
   // Intervals
-  let timerInterval: number;
-  let fadeInterval: number;
+  let timerInterval: ReturnType<typeof setInterval> | undefined;
+  let fadeInterval: ReturnType<typeof setInterval> | undefined;
 
   // Reactive color based on time left
   $: color = getColor(timeLeft);

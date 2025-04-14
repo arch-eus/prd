@@ -1,7 +1,7 @@
 <script lang="ts">
   import { X } from 'lucide-svelte';
   import { derived } from 'svelte/store';
-  import { taskStore } from '$lib/stores/taskStore';
+  import { taskStore } from '$lib/stores';
   
   export let selectedTags: string[] = [];
   let tagInput = '';

@@ -1,6 +1,6 @@
 # Task Manager
 
-A modern task management application built with SvelteKit, featuring a clean and intuitive interface.
+A modern task management application built with SvelteKit, featuring a clean and intuitive interface with offline-first capability through Evolu.dev and Progressive Web App (PWA) support.
 
 ## Features
 
@@ -37,7 +37,7 @@ A modern task management application built with SvelteKit, featuring a clean and
 ## Technical Requirements
 
 - Node.js 18+
-- Modern browser with IndexedDB support
+- Modern browser with Service Worker and IndexedDB support
 
 ## Dependencies
 
@@ -46,10 +46,33 @@ Core:
 - TypeScript
 - Tailwind CSS
 
+Offline & Data:
+- Evolu: Local-first database with sync capability
+- Effect Schema: Schema validation
+- Service Worker: PWA offline support
+
 Utilities:
 - date-fns: Date manipulation
-- idb-keyval: IndexedDB storage
+- idb-keyval: IndexedDB storage (legacy)
 - lucide-svelte: Icons
+
+## Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+```
+
+For more information about the enhanced features:
+- [Evolu & PWA Features](./FEATURES.md)
+- [Evolu Implementation](./EVOLU.md)
+- [PWA Implementation](./PWA.md)
 
 ## Project Structure
 

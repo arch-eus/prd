@@ -1,7 +1,7 @@
 <script lang="ts">
   import { derived } from 'svelte/store';
   import { Download } from 'lucide-svelte';
-  import { taskStore } from '$lib/stores/task';
+  import { syncedTaskStore as taskStore } from '$lib/stores/synced-store';
   import RecurringTaskTable from '$lib/components/recurring/RecurringTaskTable.svelte';
   import { exportRecurringTasks } from '$lib/utils/export/recurringExport';
   
@@ -25,7 +25,7 @@
   }
 </script>
 
-<div class="max-w-5xl mx-auto space-y-6">
+<div class="space-y-6">
   <div class="flex justify-between items-center">
     <h2 class="text-2xl font-bold text-navy-900 font-jetbrains-mono">Recurring Tasks</h2>
     
@@ -39,13 +39,8 @@
   </div>
 
   {#if $recurringTasks.length === 0}
-    <div class="bg-surface p-8 rounded-lg shadow-soft">
-      <p class="text-navy-500 text-center font-jetbrains-mono">No recurring tasks found</p>
-    </div>
+    <p class="text-navy-500 text-center py-8 font-jetbrains-mono">No recurring tasks found</p>
   {:else}
-    <div class="bg-surface rounded-lg shadow-soft overflow-hidden">
-      <RecurringTaskTable tasks={$recurringTasks} />
-    </div>
+    <RecurringTaskTable tasks={$recurringTasks} />
   {/if}
-  }
 </div>

@@ -11,7 +11,7 @@ export interface BaseEntity {
 }
 
 export type TaskStatus = 'todo' | 'completed';
-export type RecurrenceType = 'monthly' | 'quarterly' | 'yearly' | null;
+export type RecurrenceType = 'weekly' | 'monthly' | 'quarterly' | 'yearly' | null;
 
 export interface Task extends BaseEntity {
   title: string;

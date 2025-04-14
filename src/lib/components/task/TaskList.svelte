@@ -6,10 +6,10 @@
   import { searchQuery } from '$lib/stores/search';
 
   export let tasks: Task[] = [];
-
+  
   const dispatch = createEventDispatcher();
 
-  function handleComplete(event: CustomEvent) {
+  function handleComplete(event: CustomEvent<any>) {
     const task = tasks.find(t => t.id === event.detail.id);
     if (task) {
       taskStore.updateTask(task.id, { 
@@ -22,12 +22,14 @@
     }
   }
 
-  function handleDelete(event: CustomEvent) {
+  function handleDelete(event: CustomEvent<any>) {
     taskStore.deleteTask(event.detail.id);
     if ($searchQuery) {
       searchQuery.set('');
     }
   }
+
+  // Drag and drop functionality removed
 </script>
 
 <div class="space-y-4">

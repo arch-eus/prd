@@ -2,14 +2,15 @@
   import { format } from 'date-fns';
   import type { Task } from '$lib/types/task';
   import TaskItem from './TaskItem.svelte';
-  import { taskStore } from '$lib/stores';
+  import { syncedTaskStore as taskStore } from '$lib/stores/synced-store';
+  import { createEventDispatcher } from 'svelte';
 
   export let tasks: Task[];
+  
+  const dispatch = createEventDispatcher();
 
   $: groupedTasks = tasks.reduce((groups, task) => {
-    if (!task.completedAt) return groups;
-    
-    const date = format(task.completedAt, 'yyyy-MM-dd');
+    const date = task.completedAt ? format(task.completedAt, 'yyyy-MM-dd') : 'No Date';
     if (!groups[date]) {
       groups[date] = [];
     }
@@ -17,18 +18,33 @@
     return groups;
   }, {} as Record<string, Task[]>);
 
-  function handleDelete(event: CustomEvent) {
-    taskStore.deleteTask(event.detail.id);
-  }
-
   function handleComplete(event: CustomEvent) {
-    const task = tasks.find(t => t.id === event.detail.id);
+    const taskId = event.detail.id;
+    const task = tasks.find(t => t.id === taskId);
     if (task) {
-      taskStore.updateTask(task.id, {
-        status: 'todo',
-        completedAt: undefined,
-        dueDate: new Date()
-      });
+      // If already completed, mark as todo again
+      if (task.status === 'completed') {
+        taskStore.updateTask(taskId, { 
+          status: 'todo',
+          completedAt: undefined,
+          dueDate: new Date() // Default to today for reopened tasks
+        });
+      } else {
+        // If todo, mark as completed
+        taskStore.completeTask(taskId);
+      }
+    }
+  }
+  
+  function handleEdit(event: CustomEvent) {
+    // Forward the edit event to parent
+    dispatch('edit', event.detail);
+  }
+  
+  function handleDelete(event: CustomEvent) {
+    const taskId = event.detail.id;
+    if (taskId) {
+      taskStore.deleteTask(taskId);
     }
   }
 </script>
@@ -37,16 +53,15 @@
   {#each Object.entries(groupedTasks) as [date, dateTasks]}
     <div class="space-y-2">
       <h3 class="text-sm font-medium text-navy-500 font-jetbrains-mono">
-        {format(new Date(date), 'MMMM d, yyyy')}
+        {date !== 'No Date' ? format(new Date(date), 'MMMM d, yyyy') : 'No Completion Date'}
       </h3>
       <div class="space-y-2">
-        {#each dateTasks as task}
-          <TaskItem
-            {task}
+        {#each dateTasks as task (task.id)}
+          <TaskItem 
+            {task} 
             on:complete={handleComplete}
+            on:edit={handleEdit}
             on:delete={handleDelete}
-            on:edit
-            on:showDetails
           />
         {/each}
       </div>

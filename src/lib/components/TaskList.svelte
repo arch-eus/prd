@@ -1,28 +1,24 @@
 <script lang="ts">
   import TaskItem from './TaskItem.svelte';
   import type { Task } from '$lib/types/task';
-  import { taskStore } from '$lib/stores/task';
-  import { searchQuery } from '$lib/stores/search';
+  import { syncedTaskStore as taskStore } from '$lib/stores/synced-store';
 
   export let tasks: Task[] = [];
 
   function handleComplete(event: CustomEvent) {
-    const task = tasks.find(t => t.id === event.detail.id);
-    if (task) {
-      taskStore.updateTask(task.id, { 
-        status: task.status === 'completed' ? 'todo' : 'completed',
-        completedAt: task.status === 'completed' ? undefined : new Date()
+    const taskId = event.detail.id;
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    if (task.status === 'completed') {
+      // Uncomplete task
+      taskStore.updateTask(taskId, { 
+        status: 'todo',
+        completedAt: undefined
       });
-      if ($searchQuery) {
-        searchQuery.set('');
-      }
-    }
-  }
-
-  function handleDelete(event: CustomEvent) {
-    taskStore.deleteTask(event.detail.id);
-    if ($searchQuery) {
-      searchQuery.set('');
+    } else {
+      // Complete task (handles recurrence internally)
+      taskStore.completeTask(taskId);
     }
   }
 </script>
@@ -37,7 +33,7 @@
       <TaskItem
         {task}
         on:complete={handleComplete}
-        on:delete={handleDelete}
+        on:delete={() => taskStore.deleteTask(task.id)}
         on:edit
         on:showDetails
       />

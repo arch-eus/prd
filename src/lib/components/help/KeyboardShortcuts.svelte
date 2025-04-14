@@ -7,8 +7,11 @@
   const shortcuts = [
     { key: '?', description: 'Show keyboard shortcuts' },
     { key: 'n', description: 'Create new task' },
+    { key: ',', description: 'Open settings' },
     { key: '/', description: 'Focus search' },
     { key: 't', description: 'Go to today' },
+    { key: '←', description: 'Previous week' },
+    { key: '→', description: 'Next week' },
     { key: 'Esc', description: 'Close modal / Clear search' }
   ];
 
@@ -22,17 +25,13 @@
   class:hidden={!show}
   transition:fade={{ duration: 200 }}
 >
-  <button 
+  <div 
     class="absolute inset-0 bg-navy-900/20"
     on:click={handleClose}
-    aria-label="Close keyboard shortcuts"
   />
   
   <div 
     class="relative w-full max-w-lg bg-white rounded-lg shadow-xl"
-    role="dialog"
-    aria-modal="true"
-    aria-label="Keyboard shortcuts"
     on:click|stopPropagation
   >
     <div class="p-6">

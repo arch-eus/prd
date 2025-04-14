@@ -53,10 +53,13 @@ function createTaskStore() {
         const newTask = normalizeTask({
           ...task,
           id: crypto.randomUUID(),
+          title: task.title || 'New Task',
+          status: task.status || 'todo',
+          labels: task.labels || [],
           createdAt: new Date(),
           updatedAt: new Date(),
           order: state.tasks.length
-        });
+        } as Task);
         
         const updatedTasks = [...state.tasks, newTask];
         saveTasks(updatedTasks);
