@@ -79,6 +79,21 @@
           {submitForm}
           on:submit={handleSubmit}
         />
+        
+        <div class="flex justify-end gap-3 mt-6">
+          <button 
+            class="px-4 py-2 text-navy-700 bg-transparent hover:bg-navy-50 rounded"
+            on:click={handleClose}
+          >
+            Cancel
+          </button>
+          <button 
+            class="px-4 py-2 bg-teal-500 text-white hover:bg-teal-600 rounded"
+            on:click={submitForm}
+          >
+            Save
+          </button>
+        </div>
       </div>
     </div>
   </div>

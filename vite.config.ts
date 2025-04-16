@@ -1,6 +1,7 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
   plugins: [
@@ -63,19 +64,53 @@ export default defineConfig({
         type: 'module',
       },
     }),
+    visualizer({
+      open: false,
+      gzipSize: true,
+      brotliSize: true,
+      filename: 'dist/stats.html',
+    })
   ],
   server: {
     fs: {
       allow: ['.']
     },
-    port: 5173, // Revert to standard port since React is gone
+    port: 5173,
     hmr: {
       protocol: 'ws',
       host: 'localhost'
     },
   },
   build: {
-    target: 'esnext'
+    target: 'esnext',
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+      },
+    },
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          // Group CRDT/collaboration dependencies together
+          if (id.includes('y-') || id.includes('yjs') || id.includes('syncedstore')) {
+            return 'crdt';
+          }
+          // Group date utility dependencies
+          if (id.includes('date-fns')) {
+            return 'date-utils';
+          }
+          // Group UI components
+          if (id.includes('lucide')) {
+            return 'ui-components';
+          }
+          // Keep other dependencies in the vendor chunk
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
+        }
+      }
+    }
   },
   optimizeDeps: {
     exclude: ['@sveltejs/kit'],
