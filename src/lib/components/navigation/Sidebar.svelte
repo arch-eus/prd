@@ -52,18 +52,6 @@
     </div>
   </div>
   
-  <div class="space-y-2">
-    <h3 class="px-4 text-sm font-medium text-navy-400">App</h3>
-    <div class="px-4">
-      <button 
-        class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-navy-800 hover:bg-navy-50 rounded-md transition-colors w-full"
-        on:click={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: ',' }))}
-      >
-        <Settings class="w-4 h-4" />
-        Settings <span class="text-xs text-navy-400 ml-auto">,</span>
-      </button>
-    </div>
-  </div>
 </nav>
 
 <!-- Status indicator at the bottom -->
@@ -81,4 +69,12 @@
     <div class="w-2 h-2 bg-navy-400 rounded-full"></div>
     <span>Offline</span>
   {/if}
+  
+  <button 
+    class="ml-1 p-1.5 hover:bg-navy-100 rounded-md absolute right-2"
+    title="Settings"
+    on:click={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: ',' }))}
+  >
+    <Settings class="w-4 h-4" />
+  </button>
 </div>

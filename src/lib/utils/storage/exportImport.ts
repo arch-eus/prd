@@ -3,11 +3,23 @@ import { get } from 'svelte/store';
 import { taskStore } from '$lib/stores/task';
 import { format } from 'date-fns';
 
+export interface ExportData {
+  version: number;
+  exportDate: string;
+  appName: string;
+  appVersion: string;
+  taskCount: number;
+  tasks: Task[];
+}
+
 export function exportTasks() {
   const tasks = get(taskStore);
-  const exportData = {
+  const exportData: ExportData = {
     version: 1,
     exportDate: new Date().toISOString(),
+    appName: 'TaskManager',
+    appVersion: '1.0.0', // Should ideally come from package.json or env
+    taskCount: tasks.tasks.length,
     tasks: tasks.tasks
   };
 
@@ -26,7 +38,7 @@ export function exportTasks() {
   URL.revokeObjectURL(url);
 }
 
-export async function importTasks(file: File): Promise<void> {
+export async function importTasks(file: File, options = { replace: true }): Promise<{added: number; replaced: number}> {
   try {
     const text = await file.text();
     const data = JSON.parse(text);
@@ -36,16 +48,42 @@ export async function importTasks(file: File): Promise<void> {
       throw new Error('Invalid import file format');
     }
 
-    // Clear IndexedDB
-    await clearBrowserData();
-    
-    // Import tasks
-    await taskStore.init(); // Reset store
-    for (const task of data.tasks) {
-      await taskStore.addTask(task);
+    if (options.replace) {
+      // Clear existing data and replace with imported data
+      await clearBrowserData();
+      await taskStore.init(); // Reset store
+      
+      // Import tasks
+      let added = 0;
+      for (const task of data.tasks) {
+        await taskStore.addTask(task);
+        added++;
+      }
+      
+      return { added, replaced: 0 };
+    } else {
+      // Merge imported tasks with existing ones
+      // Get existing task IDs for duplicate checking
+      const existingTasks = get(taskStore).tasks;
+      const existingIds = new Set(existingTasks.map(t => t.id));
+      
+      let added = 0;
+      let replaced = 0;
+      
+      for (const task of data.tasks) {
+        if (existingIds.has(task.id)) {
+          // Update existing task
+          await taskStore.updateTask(task.id, task);
+          replaced++;
+        } else {
+          // Add new task
+          await taskStore.addTask(task);
+          added++;
+        }
+      }
+      
+      return { added, replaced };
     }
-
-    return Promise.resolve();
   } catch (error) {
     console.error('Error importing tasks:', error);
     return Promise.reject(error);

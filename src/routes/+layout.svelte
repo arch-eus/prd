@@ -7,7 +7,7 @@
   import Sidebar from '$lib/components/navigation/Sidebar.svelte';
   import TaskFormModal from '$lib/components/TaskFormModal.svelte';
   import KeyboardShortcuts from '$lib/components/help/KeyboardShortcuts.svelte';
-  import SettingsModal from '$lib/components/SettingsModal.svelte';
+  import SettingsModal from '$lib/components/modal/SettingsModal.svelte';
   import { setupKeyboardShortcuts } from '$lib/utils/keyboard';
   import SyncedStoreProvider from '$lib/components/SyncedStoreProvider.svelte';
   import PWAHandler from '$lib/components/PWAHandler.svelte';

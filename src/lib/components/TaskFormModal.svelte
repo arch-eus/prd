@@ -87,12 +87,6 @@
           >
             Cancel
           </button>
-          <button 
-            class="px-4 py-2 bg-teal-500 text-white hover:bg-teal-600 rounded"
-            on:click={submitForm}
-          >
-            Save
-          </button>
         </div>
       </div>
     </div>
